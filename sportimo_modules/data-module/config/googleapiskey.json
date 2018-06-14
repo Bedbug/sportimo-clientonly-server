@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "sportimo-174913",
+  "private_key_id": "da60d41e6b16e2f536e426381e9ce4c31ace3f07",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGUaUGXc/codQy\nID2sbGaJBzqcuoNeICXdNIV2HASfVwu+MDfY/u8PODAHqJGvUNhhCDoMAxjZoMC/\n1DBFz62rENfBnrTDlw5vt9EdeI1MNljhJhvTOCQMNlDFm6k4CnkkQFuN4SetMMc9\nc6DN+6srna3DOLG60GEyJljcAJrh799543oL1iVtOx3KV9NVRVy6udR2uPOOaHLL\nX1hbeXki5C2rqnSEwy5CKYu/BCg3SesZsxDLJ9O/5TnO1p7jQgHt9kLYDC6oQPBC\nXG74EfvMn31dNBjq5WCy59QtsgR31CGcBg3qM25QPdvDyPE6pJsHG3hmfyNM1xtX\nIZMxDeKJAgMBAAECggEAH7PYghqICniSL8sooMIZaAlQTNKiAm94LhLhzN4wvPoQ\nxf/2RYmHVLMCNo8zbsepN2W1xcrO86c3eNLmPpqy4/hGzUxeEDA7Hg/P7Xqid87u\nSVuqsgq09IDQS66VEADYmbtyB025Zn24M/IigBsdo1TK/Ly46Ki8COTJaq3sFHbY\naCly26KUe/Go18VJjqXbwv5dkyvZROuGd+sE0VbnYFfUWFcRc+pK00E3Qr3Kxlrb\nTeLn1k0QV3OoOyQ6H/Pr6xrPIg2jBvQqbpL6zSSYyUhKZgcaslJzwBLSA2RCEeQ5\ntwulnuwLpjTVrTzoiA66f3QM26Y5mt/K/KcumJ5VMwKBgQDuFFKDZH4ZtY9nPrx0\nZFKx5pdOLE3duF+sha4Ppj/xxPHMFkF7Bm2S+C3nwd1/BUSv7FT6CSCfYiFePZ+Z\nfPbwjx0sSmpw8HvXIej3nvMJu/WaERAVEebvTmGcDVZLfPuaUwgJREhB6EbnQuBs\nZ+k0zs3DyRxJUiFPYqpMNNG/4wKBgQDVPygu12XsG///LpbnQcuYz5x07aNWbNTm\nffS1WiwPOR4Exd44y1+9099OnJ3hzAXZso+jkDGus/MZethZ1SHV+qHCjyDEjr/+\nb+r75XHuRK9rCrbUww8t+V9NqUbbALpDJuVMJSal5/u/UU45wfmccCypMs7c7wIK\nDzgFAHCHowKBgDHGofHCovKxGQhW/4O+LePv+BZqAOWoVKh3UosHETt1F7C5vnsA\nPwyJQt+/kpWp/lBhsuqL2fw4wg04CRRIIkDtSwYlkNeID/xMpK6Q1vNkDtdlVd1x\n3ryNwK6lwzMJMHl1fqqhUhIlhB15x/4iQ4m86xxSAc36k+hLEpvYNzpNAoGBAMks\nyvjdxk6n36taxYwnuy5PdjetVLGc/IDyBODtz7EQ3mv8S3fjDVClR/7+q8ev1Tka\nRn4081nwc//ur5qYAlK/HsnQg0ZLsX8VEGdRf1kcPS1Lr04rMu/ZWXqHnsvO9OmT\nETDzv3E22H4V8yl0AMr/3HJG93bgmFjrIJs/XennAoGAettRFzw0hE/lF+llbCnI\nfLrx3CnvSA9Cvqc9jAAM8xVPBgqNFSFhix+/gSYQK0EAH7dJGDI/SRpCK3s1DTSJ\nUES6D7Ug4+avL04bM8E/TvgQNafI4UAhFZpBXRVVNHVUT0Vro1WkMEivLjzVmcOV\nlFfAL5fHMloN5HVz+LgCZ5A=\n-----END PRIVATE KEY-----\n",
+  "client_email": "admin-457@sportimo-174913.iam.gserviceaccount.com",
+  "client_id": "110355142723867404797",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/admin-457%40sportimo-174913.iam.gserviceaccount.com"
+}

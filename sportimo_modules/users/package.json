@@ -1,0 +1,13 @@
+{
+  "name": "users API",
+  "dependencies": {
+    "express": "latest",
+    "mongoose": "latest",
+    "morgan": "latest",
+    "body-parser": "latest",
+   "jsonwebtoken": "latest"
+  },
+  "scripts": {   
+    "start": "node index.js"
+  }
+}

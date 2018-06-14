@@ -1,0 +1,331 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{9f7d6a7e-8812-4df0-b975-8a13a0c0a9f4}</ProjectGuid>
+    <ProjectHome />
+    <ProjectView>ShowAllFiles</ProjectView>
+    <StartupFile>server.js</StartupFile>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <StartWebBrowser>True</StartWebBrowser>
+    <Environment>NODE_ENV=development
+PORT=3030</Environment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <ItemGroup>
+    <Content Include="jsconfig.json" />
+    <Content Include="package-lock.json" />
+    <Content Include="package.json" />
+    <Content Include="README.md" />
+    <Compile Include="gulpfile.js" />
+    <Compile Include="server.js" />
+    <Compile Include="config\mongoConfig.js" />
+    <Compile Include="config\redisConfig.js" />
+    <Content Include="diagrams\IMG_4690.PNG" />
+    <Content Include="documentation\Cleaning selected users and matches from MongoDB with Robomongo.txt" />
+    <Content Include="documentation\Mongo Footprint for 1 match.txt" />
+    <Content Include="documentation\Requested Mongo Scripts SPI-596.txt" />
+    <Content Include="documentation\Statscore incident types.txt" />
+    <Content Include="documentation\Statscore parserids mapping.txt" />
+    <Content Include="documentation\Useful MongoDB scripts.txt" />
+    <Content Include="documentation\WC2018 player name migration to arabic from Excel.txt" />
+    <Content Include="documentation\Statscore autobooked championships.PNG" />
+    <Content Include="documentation\GoogleService-ServiceAccount-Sportimo-afb0e46490b0.json" />
+    <Content Include="documentation\Sportimo API.postman_collection.json" />
+    <Content Include="documentation\Statscore Egyptian League teams list.json" />
+    <Content Include="documentation\Statscore Saudi Prof League teams list.json" />
+    <Content Include="documentation\Statscore UAE League teams list.json" />
+    <Content Include="documentation\statscore_competitions.json" />
+    <Compile Include="models\settings.js" />
+    <Content Include="static\corner_ar.html" />
+    <Content Include="static\corner_en.html" />
+    <Content Include="static\defence_ar.html" />
+    <Content Include="static\defence_en.html" />
+    <Content Include="static\foul_ar.html" />
+    <Content Include="static\foul_en.html" />
+    <Content Include="static\goal_ar.html" />
+    <Content Include="static\goal_en.html" />
+    <Content Include="static\offside_ar.html" />
+    <Content Include="static\offside_en.html" />
+    <Content Include="static\penalty_ar.html" />
+    <Content Include="static\penalty_en.html" />
+    <Content Include="static\red_ar.html" />
+    <Content Include="static\red_en.html" />
+    <Content Include="static\result_ar.html" />
+    <Content Include="static\result_en.html" />
+    <Content Include="static\shot_on_goal.html" />
+    <Content Include="static\shot_on_goal_ar.html" />
+    <Content Include="static\yellow_ar.html" />
+    <Content Include="static\yellow_en.html" />
+    <Content Include="static\corner_en.png" />
+    <Content Include="static\defence_en.png" />
+    <Content Include="static\foul_en.png" />
+    <Content Include="static\goal_en.png" />
+    <Content Include="static\offside_en.png" />
+    <Content Include="static\penalty_en.png" />
+    <Content Include="static\red_en.png" />
+    <Content Include="static\result_en.png" />
+    <Content Include="static\shot_on_goal.png" />
+    <Content Include="static\yellow_en.png" />
+    <Compile Include="test\tests.js" />
+    <Compile Include="sportimo_modules\bedbugAchievements\index.js" />
+    <Compile Include="sportimo_modules\data-module\index.js" />
+    <Compile Include="sportimo_modules\early-access\index.js" />
+    <Compile Include="sportimo_modules\gamecards\index.js" />
+    <Content Include="sportimo_modules\leaderpay\bower.json" />
+    <Content Include="sportimo_modules\leaderpay\package.json" />
+    <Content Include="sportimo_modules\leaderpay\README.md" />
+    <Compile Include="sportimo_modules\leaderpay\Gruntfile.js" />
+    <Compile Include="sportimo_modules\leaderpay\index.js" />
+    <Compile Include="sportimo_modules\match-moderation\index.js" />
+    <Compile Include="sportimo_modules\messaging-tools\index.js" />
+    <Compile Include="sportimo_modules\models\achievement.js" />
+    <Compile Include="sportimo_modules\models\answer.js" />
+    <Compile Include="sportimo_modules\models\article.js" />
+    <Compile Include="sportimo_modules\models\competition.js" />
+    <Compile Include="sportimo_modules\models\favQuestion.js" />
+    <Compile Include="sportimo_modules\models\gamecardDefinition.js" />
+    <Compile Include="sportimo_modules\models\gamecardTemplate.js" />
+    <Compile Include="sportimo_modules\models\gameServerSettings.js" />
+    <Compile Include="sportimo_modules\models\introQuestions.js" />
+    <Compile Include="sportimo_modules\models\knockoutStanding.js" />
+    <Compile Include="sportimo_modules\models\matchEvents.js" />
+    <Compile Include="sportimo_modules\models\matchfeedStatus.js" />
+    <Compile Include="sportimo_modules\models\matchRawEventsStream.js" />
+    <Compile Include="sportimo_modules\models\message.js" />
+    <Compile Include="sportimo_modules\models\player.js" />
+    <Compile Include="sportimo_modules\models\poll.js" />
+    <Compile Include="sportimo_modules\models\purchase.js" />
+    <Compile Include="sportimo_modules\models\question.js" />
+    <Compile Include="sportimo_modules\models\scheduled-matches.js" />
+    <Compile Include="sportimo_modules\models\score.js" />
+    <Compile Include="sportimo_modules\models\sponsor.js" />
+    <Compile Include="sportimo_modules\models\standing.js" />
+    <Compile Include="sportimo_modules\models\star.js" />
+    <Compile Include="sportimo_modules\models\stats-mod.js" />
+    <Compile Include="sportimo_modules\models\stats_responses.js" />
+    <Compile Include="sportimo_modules\models\subscription.js" />
+    <Compile Include="sportimo_modules\models\taunt.js" />
+    <Compile Include="sportimo_modules\models\team.js" />
+    <Compile Include="sportimo_modules\models\user.js" />
+    <Compile Include="sportimo_modules\models\userActivity.js" />
+    <Compile Include="sportimo_modules\models\userGamecard.js" />
+    <Compile Include="sportimo_modules\models\userLinkcode.js" />
+    <Compile Include="sportimo_modules\models\userTaunt.js" />
+    <Compile Include="sportimo_modules\notifications\notifications.js" />
+    <Compile Include="sportimo_modules\offline_data\offline_data_updater.js" />
+    <Compile Include="sportimo_modules\polls\index.js" />
+    <Compile Include="sportimo_modules\questions\index.js" />
+    <Content Include="sportimo_modules\users\package.json" />
+    <Compile Include="sportimo_modules\users\config.js" />
+    <Compile Include="sportimo_modules\users\index.js" />
+    <Compile Include="sportimo_modules\data-module\api\achievement.js" />
+    <Compile Include="sportimo_modules\data-module\api\article.js" />
+    <Compile Include="sportimo_modules\data-module\api\competition.js" />
+    <Compile Include="sportimo_modules\data-module\api\introQuestions.js" />
+    <Compile Include="sportimo_modules\data-module\api\match.js" />
+    <Compile Include="sportimo_modules\data-module\api\messages.js" />
+    <Compile Include="sportimo_modules\data-module\api\player.js" />
+    <Compile Include="sportimo_modules\data-module\api\poll.js" />
+    <Compile Include="sportimo_modules\data-module\api\purchase.js" />
+    <Compile Include="sportimo_modules\data-module\api\schedule.js" />
+    <Compile Include="sportimo_modules\data-module\api\sponsor.js" />
+    <Compile Include="sportimo_modules\data-module\api\standing.js" />
+    <Compile Include="sportimo_modules\data-module\api\stars.js" />
+    <Compile Include="sportimo_modules\data-module\api\tags.js" />
+    <Compile Include="sportimo_modules\data-module\api\team.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\achievement.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\competition.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\introQuestions.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\messages.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\player.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\purchase.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\sponsor.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\stars.js" />
+    <Compile Include="sportimo_modules\data-module\apiObjects\team.js" />
+    <Content Include="sportimo_modules\data-module\config\googleapiskey.json" />
+    <Compile Include="sportimo_modules\data-module\config\db.js" />
+    <Compile Include="sportimo_modules\data-module\config\empty-match.js" />
+    <Compile Include="sportimo_modules\data-module\config\lib.js" />
+    <Compile Include="sportimo_modules\data-module\routes\index.js" />
+    <Compile Include="sportimo_modules\data-module\test\test-achievement.js" />
+    <Compile Include="sportimo_modules\data-module\test\test-competition.js" />
+    <Compile Include="sportimo_modules\data-module\test\test-player.js" />
+    <Compile Include="sportimo_modules\data-module\test\test-sponsor.js" />
+    <Compile Include="sportimo_modules\data-module\test\test-team.js" />
+    <Content Include="sportimo_modules\data-module\views\article.ejs" />
+    <Content Include="sportimo_modules\data-module\public\css\publication.css" />
+    <Content Include="sportimo_modules\data-module\public\css\style.css" />
+    <Content Include="sportimo_modules\data-module\public\css\zoom.css" />
+    <Compile Include="sportimo_modules\data-module\public\js\app.js" />
+    <Compile Include="sportimo_modules\data-module\public\js\iscroll-probe.js" />
+    <Compile Include="sportimo_modules\data-module\public\js\iscroll.js" />
+    <Compile Include="sportimo_modules\data-module\public\js\script.js" />
+    <Compile Include="sportimo_modules\early-access\api\earlyaccessuser.js" />
+    <Compile Include="sportimo_modules\early-access\models\earlyAccessUser.js" />
+    <Compile Include="sportimo_modules\gamecards\api\gamecards.js" />
+    <Compile Include="sportimo_modules\leaderpay\api\leaderboard.js" />
+    <Compile Include="sportimo_modules\leaderpay\api\pool.js" />
+    <Compile Include="sportimo_modules\leaderpay\api\prize.js" />
+    <Compile Include="sportimo_modules\leaderpay\api\score.js" />
+    <Compile Include="sportimo_modules\leaderpay\apiObjects\leaderboard.js" />
+    <Compile Include="sportimo_modules\leaderpay\apiObjects\pool.js" />
+    <Compile Include="sportimo_modules\leaderpay\apiObjects\prize.js" />
+    <Compile Include="sportimo_modules\leaderpay\apiObjects\score.js" />
+    <Compile Include="sportimo_modules\leaderpay\config\db.js" />
+    <Compile Include="sportimo_modules\leaderpay\config\lib.js" />
+    <Compile Include="sportimo_modules\leaderpay\models\leaderoom.js" />
+    <Compile Include="sportimo_modules\leaderpay\models\pool.js" />
+    <Compile Include="sportimo_modules\leaderpay\models\prize.js" />
+    <Compile Include="sportimo_modules\leaderpay\routes\index.js" />
+    <Compile Include="sportimo_modules\leaderpay\test\test-prize.js" />
+    <Compile Include="sportimo_modules\leaderpay\test\test-score.js" />
+    <Compile Include="sportimo_modules\match-moderation\api\manual.js" />
+    <Compile Include="sportimo_modules\match-moderation\api\schedule.js" />
+    <Compile Include="sportimo_modules\match-moderation\api\services-handling.js" />
+    <Compile Include="sportimo_modules\match-moderation\config\db.js" />
+    <Compile Include="sportimo_modules\match-moderation\lib\match-module.js" />
+    <Compile Include="sportimo_modules\match-moderation\lib\sports-settings.js" />
+    <Compile Include="sportimo_modules\match-moderation\lib\StatsHelper.js" />
+    <Compile Include="sportimo_modules\match-moderation\mocks\empty-match.js" />
+    <Compile Include="sportimo_modules\match-moderation\mocks\mock-match.js" />
+    <Compile Include="sportimo_modules\match-moderation\parsers\Stats.js" />
+    <Compile Include="sportimo_modules\match-moderation\parsers\Statscore.js" />
+    <Compile Include="sportimo_modules\match-moderation\services\manual.js" />
+    <Compile Include="sportimo_modules\match-moderation\services\rss-feed.js" />
+    <Compile Include="sportimo_modules\messaging-tools\config\pre-messages.js" />
+    <Compile Include="sportimo_modules\offline_data\api\ondemand.js" />
+    <Compile Include="sportimo_modules\offline_data\api\onschedule.js" />
+    <Compile Include="sportimo_modules\offline_data\config\db.js" />
+    <Compile Include="sportimo_modules\offline_data\parsers\Stats.js" />
+    <Compile Include="sportimo_modules\offline_data\parsers\Statscore.js" />
+    <Compile Include="sportimo_modules\polls\api\poll.js" />
+    <Compile Include="sportimo_modules\polls\config\db.js" />
+    <Compile Include="sportimo_modules\polls\test\test-question.js" />
+    <Compile Include="sportimo_modules\questions\api\favQuestion.js" />
+    <Compile Include="sportimo_modules\questions\api\question.js" />
+    <Compile Include="sportimo_modules\questions\apiObjects\favQuestion.js" />
+    <Compile Include="sportimo_modules\questions\apiObjects\question.js" />
+    <Compile Include="sportimo_modules\questions\config\db.js" />
+    <Compile Include="sportimo_modules\questions\config\lib.js" />
+    <Compile Include="sportimo_modules\questions\routes\index.js" />
+    <Compile Include="sportimo_modules\questions\test\test-question.js" />
+    <Content Include="static\helpcenter\index.html" />
+    <Compile Include="test\testObjects\eventYellow.js" />
+    <Compile Include="test\testObjects\mockMatch.js" />
+    <Compile Include="test\testObjects\mockMatch_withfeed.js" />
+    <Compile Include="test\testObjects\playCard.js" />
+    <Compile Include="test\testObjects\statsMatchEvolution.js" />
+    <Compile Include="test\testObjects\statsMatchShort.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin" />
+    <Folder Include="config" />
+    <Folder Include="diagrams" />
+    <Folder Include="documentation" />
+    <Folder Include="models" />
+    <Folder Include="sportimo_modules" />
+    <Folder Include="sportimo_modules\bedbugAchievements" />
+    <Folder Include="sportimo_modules\data-module" />
+    <Folder Include="sportimo_modules\data-module\api" />
+    <Folder Include="sportimo_modules\data-module\apiObjects" />
+    <Folder Include="sportimo_modules\data-module\config" />
+    <Folder Include="sportimo_modules\data-module\public" />
+    <Folder Include="sportimo_modules\data-module\public\css" />
+    <Folder Include="sportimo_modules\data-module\public\js" />
+    <Folder Include="sportimo_modules\data-module\routes" />
+    <Folder Include="sportimo_modules\data-module\test" />
+    <Folder Include="sportimo_modules\data-module\views" />
+    <Folder Include="sportimo_modules\early-access" />
+    <Folder Include="sportimo_modules\early-access\api" />
+    <Folder Include="sportimo_modules\early-access\models" />
+    <Folder Include="sportimo_modules\gamecards" />
+    <Folder Include="sportimo_modules\gamecards\api" />
+    <Folder Include="sportimo_modules\leaderpay" />
+    <Folder Include="sportimo_modules\leaderpay\api" />
+    <Folder Include="sportimo_modules\leaderpay\apiObjects" />
+    <Folder Include="sportimo_modules\leaderpay\config" />
+    <Folder Include="sportimo_modules\leaderpay\models" />
+    <Folder Include="sportimo_modules\leaderpay\routes" />
+    <Folder Include="sportimo_modules\leaderpay\test" />
+    <Folder Include="sportimo_modules\match-moderation" />
+    <Folder Include="sportimo_modules\match-moderation\api" />
+    <Folder Include="sportimo_modules\match-moderation\config" />
+    <Folder Include="sportimo_modules\match-moderation\lib" />
+    <Folder Include="sportimo_modules\match-moderation\mocks" />
+    <Folder Include="sportimo_modules\match-moderation\parsers" />
+    <Folder Include="sportimo_modules\match-moderation\services" />
+    <Folder Include="sportimo_modules\messaging-tools" />
+    <Folder Include="sportimo_modules\messaging-tools\config" />
+    <Folder Include="sportimo_modules\models" />
+    <Folder Include="sportimo_modules\notifications" />
+    <Folder Include="sportimo_modules\offline_data" />
+    <Folder Include="sportimo_modules\offline_data\api" />
+    <Folder Include="sportimo_modules\offline_data\config" />
+    <Folder Include="sportimo_modules\offline_data\parsers" />
+    <Folder Include="sportimo_modules\polls" />
+    <Folder Include="sportimo_modules\polls\api" />
+    <Folder Include="sportimo_modules\polls\config" />
+    <Folder Include="sportimo_modules\polls\test" />
+    <Folder Include="sportimo_modules\questions" />
+    <Folder Include="sportimo_modules\questions\api" />
+    <Folder Include="sportimo_modules\questions\apiObjects" />
+    <Folder Include="sportimo_modules\questions\config" />
+    <Folder Include="sportimo_modules\questions\routes" />
+    <Folder Include="sportimo_modules\questions\test" />
+    <Folder Include="sportimo_modules\users" />
+    <Folder Include="SportimoClientonlyServer" />
+    <Folder Include="static" />
+    <Folder Include="static\helpcenter" />
+    <Folder Include="test" />
+    <Folder Include="test\testObjects" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them.-->
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:48022/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>True</UseCustomServer>
+          <CustomServerUrl>http://localhost:1337</CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>False</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

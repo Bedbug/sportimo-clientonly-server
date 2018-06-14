@@ -1,0 +1,309 @@
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Find a player, and embed in the final player document his team and the correspondent competition
+
+var players = db.getCollection('players').find({'name.en': /Mavropanos/});
+if (players) {
+    players.forEach(function(player) {
+        var team = db.getCollection('teams').findOne({_id: ObjectId(player.teamId)});
+        if (team) {
+            player.team = team;
+            var league = db.getCollection('competitions').findOne({_id: ObjectId(team.competitionid)});
+            if (league)
+                player.team.competition = league;
+        }
+        print(player);
+    });
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Find in matchfeedstatuses, all Statscore events in diffed_events of the same incident type:
+
+var matchid = "";			// <-----  Fill in here the match id for which you want to query for incident ids
+var doc = db.getCollection('matchfeedstatuses').findOne({ matchid: matchid}, {'diffed_events.Statscore' : true});
+var events = doc.diffed_events.Statscore;
+if (events) {
+    var singleEvents = events.map(function (i) { return i[0]; });
+    var goals = singleEvents.filter(function(e) { return e.data && e.data.incident && e.data.incident.incident_id == 423; });
+    print(goals);
+}
+
+			
+			
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Prepare a completed scheduled match to be replayed in a simulated manner from feed events in matchfeedstatuses (in order to test new parser features):
+
+var matchid = "";			// <-----  Fill in here the match id for which you want to reset data
+db.getCollection('scheduled_matches').update(
+    // query 
+    {
+        "_id" : ObjectId(matchid)
+    },
+    
+    // update 
+    {
+		$set: {
+			stats: [],
+			state: NumberInt(0),
+			time: NumberInt(1),
+			completed: false,
+			home_score: NumberInt(0),
+			away_score: NumberInt(0)
+		},
+		$push: {
+			timeline: { 
+				$each: [],
+				$slice: 1
+			}
+		}
+    },
+    
+    // options 
+    {
+        "multi" : false,  // update only one document 
+        "upsert" : false  // insert a new document, if no existing document match the query 
+    }
+);			
+db.getCollection('matchfeedstatuses').update(
+    // query 
+    {
+        "matchid" : matchid
+    },
+    
+    // update 
+    {
+		$set: {
+			"parsed_eventids": {},
+			"parser_status": {},
+            "incomplete_events": {}
+		}
+    },
+    
+    // options 
+    {
+        "multi" : false,  // update only one document 
+        "upsert" : false  // insert a new document, if no existing document match the query 
+    }
+);			
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Number of Instant, Preset Instant & Overall played cards per category (goal, corner etc) from 01-10 february. Eg we have 10 Instant played cards from goal category, 5 from corner category etc
+
+var cards = db.getCollection('usergamecards').find({creationTime: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}}).toArray();
+var cardsPerStatistic = {};
+cards.forEach(function(card) {
+   if (!cardsPerStatistic[card.primaryStatistic])
+       cardsPerStatistic[card.primaryStatistic] = {};
+   if (cardsPerStatistic[card.primaryStatistic][card.cardType] == 'undefined' || cardsPerStatistic[card.primaryStatistic][card.cardType] == null)
+       cardsPerStatistic[card.primaryStatistic][card.cardType] = 0;
+   else
+       cardsPerStatistic[card.primaryStatistic][card.cardType] ++;
+});
+print(cardsPerStatistic); 
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Played Powerups on Cards per Card Type (Instant, Preset Instant, Overall), per Powerup Category, per Card Category (Goal, Corner etc) from 19-26.02.2018
+
+var cards = db.getCollection('usergamecards').find({creationTime: {$gt: ISODate('2018-02-19'), $lt: ISODate('2018-02-27')}}).toArray();
+var result = {
+	totalPowerups: 0,
+	cardType: {},
+	cardCategory: {},
+	powerupType: {}
+	};
+cards.forEach(function(card) {
+	if (card.specials && ((card.specials.DoubleTime && card.specials.DoubleTime.status == 2) || (card.specials.DoublePoints && card.specials.DoublePoints.status == 2))) {
+		result.totalPowerups++;
+		if (!result.cardType[card.cardType])
+			result.cardType[card.cardType] = 0;
+		result.cardType[card.cardType]++;
+		if (!result.cardCategory[card.primaryStatistic])
+			result.cardCategory[card.primaryStatistic] = 0;
+		result.cardCategory[card.primaryStatistic]++;
+		if (card.specials.DoubleTime && card.specials.DoubleTime.status == 2) {
+			if (!result.powerupType['DoubleTime'])
+				result.powerupType['DoubleTime'] = 0;
+			result.powerupType['DoubleTime']++;
+		}
+		if (card.specials.DoublePoints && card.specials.DoublePoints.status == 2) {
+			if (!result.powerupType['DoublePoints'])
+				result.powerupType['DoublePoints'] = 0;
+			result.powerupType['DoublePoints']++;
+		}
+	}
+});
+print(result);
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Number of Registrations from 01-10 february per type (Facebook/Regular)
+// We can;t separate Facebook and Regular registrations, here is the sum
+
+db.getCollection('users').find({createdAt: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}})
+or
+db.getCollection('users').count({createdAt: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}})
+
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Number of Tutorial Completions from 01-10 february per platform ( iOS/Android)
+not possible to be answered
+
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Number of Instant, Preset Instant & Overall played cards per category (goal, corner etc), per match from 01-10 february
+
+var matches = db.getCollection('scheduled_matches').find({start: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}}, {start: 1}).toArray();
+
+if (matches.length > 0) {
+   var matchIds = matches.map(function(match) {
+       return match._id.valueOf();
+   });
+   
+   var cards = db.getCollection('usergamecards').find({matchid: {$in: matchIds}}).toArray();
+   var cardsPerMatchAndStatistic = {};
+   cards.forEach(function(card) {
+       if (!cardsPerMatchAndStatistic[card.matchid])
+           cardsPerMatchAndStatistic[card.matchid] = {};
+       if (!cardsPerMatchAndStatistic[card.matchid][card.primaryStatistic])
+           cardsPerMatchAndStatistic[card.matchid][card.primaryStatistic] = {};
+       if (cardsPerMatchAndStatistic[card.matchid][card.primaryStatistic][card.cardType] == 'undefined' ||
+           cardsPerMatchAndStatistic[card.matchid][card.primaryStatistic][card.cardType] == null)
+           cardsPerMatchAndStatistic[card.matchid][card.primaryStatistic][card.cardType] = 0;
+       else
+           cardsPerMatchAndStatistic[card.matchid][card.primaryStatistic][card.cardType] ++;    
+   });
+   print(cardsPerMatchAndStatistic);
+}
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Number of unique users that played a card and number of unique users played a powerup on a card from 01-10 february
+
+var cards = db.getCollection('usergamecards').find({creationTime: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}}).toArray();
+var uniqueCardPlayers = { };
+var uniquePowerupPlayers = { };
+cards.forEach(function(card) {
+	if (!uniqueCardPlayers[card.userid])
+		uniqueCardPlayers[card.userid] = true;
+	if (card.specials && ((card.specials.DoubleTime && card.specials.DoubleTime.status == 2) || (card.specials.DoublePoints && card.specials.DoublePoints.status == 2))) {
+		if (!uniquePowerupPlayers[card.userid])
+			uniquePowerupPlayers[card.userid] = true;
+	}
+});
+var result = {
+	uniqueCardPlayers: Object.keys(uniqueCardPlayers).length,
+	uniquePowerupPlayers: Object.keys(uniquePowerupPlayers).length
+	};
+print(result);
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Number of unique users that played a card and number of unique users played a powerup on a card from 01-10 february for certain match ids
+
+var selectedMatchIds = ['5a76cbe7bb2c151400101562', '5a76cbc6bb2c1514001014cc']
+var cards = db.getCollection('usergamecards').find({matchid: {$in: selectedMatchIds}, creationTime: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}}).toArray();
+var uniqueCardPlayers = { };
+var uniquePowerupPlayers = { };
+cards.forEach(function(card) {
+	if (!uniqueCardPlayers[card.userid])
+		uniqueCardPlayers[card.userid] = true;
+	if (card.specials && ((card.specials.DoubleTime && card.specials.DoubleTime.status == 2) || (card.specials.DoublePoints && card.specials.DoublePoints.status == 2))) {
+		if (!uniquePowerupPlayers[card.userid])
+			uniquePowerupPlayers[card.userid] = true;
+	}
+});
+var result = {
+	uniqueCardPlayers: Object.keys(uniqueCardPlayers).length,
+	uniquePowerupPlayers: Object.keys(uniquePowerupPlayers).length
+	};
+print(result);
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Total number Powerups played on cards from 19-26.02.2018
+// Played Powerups on Cards per Card Type (Instant, Preset Instant, Overall), per Powerup Category, per Card Category (Goal, Corner etc) from 19-26.02.2018
+
+var cards = db.getCollection('usergamecards').find({creationTime: {$gt: ISODate('2018-02-19'), $lt: ISODate('2018-02-27')}}).toArray();
+var result = {
+	totalPowerups: 0,
+	UniqueUsersPerCardType: {},
+	UniqueUsersPerCardCategory: {},
+	UniqueUsersPerPowerupType: {}
+	};
+var uniqueUsers = {
+	cardType: {},
+	cardCategory: {},
+	powerupType: {}
+	};
+cards.forEach(function(card) {
+	if (card.specials && ((card.specials.DoubleTime && card.specials.DoubleTime.status == 2) || (card.specials.DoublePoints && card.specials.DoublePoints.status == 2))) {
+		result.totalPowerups++;
+		if (!uniqueUsers.cardType[card.cardType])
+			uniqueUsers.cardType[card.cardType] = {};
+		if (!uniqueUsers.cardType[card.cardType][card.userid])
+			uniqueUsers.cardType[card.cardType][card.userid] = true;
+		if (!uniqueUsers.cardCategory[card.primaryStatistic])
+			uniqueUsers.cardCategory[card.primaryStatistic] = {};
+		if (!uniqueUsers.cardCategory[card.primaryStatistic][card.userid])
+			uniqueUsers.cardCategory[card.primaryStatistic][card.userid] = true;
+		if (card.specials.DoubleTime && card.specials.DoubleTime.status == 2) {
+			if (!uniqueUsers.powerupType['DoubleTime'])
+				uniqueUsers.powerupType['DoubleTime'] = {};
+			if (!uniqueUsers.powerupType['DoubleTime'][card.userid])
+				uniqueUsers.powerupType['DoubleTime'][card.userid] = true;
+		}
+		if (card.specials.DoublePoints && card.specials.DoublePoints.status == 2) {
+			if (!uniqueUsers.powerupType['DoublePoints'])
+				uniqueUsers.powerupType['DoublePoints'] = {};
+			if (!uniqueUsers.powerupType['DoublePoints'][card.userid])
+				uniqueUsers.powerupType['DoublePoints'][card.userid] = true;
+		}
+	}
+});
+var cardTypeKeys = Object.keys(uniqueUsers.cardType);
+cardTypeKeys.forEach(function(key) {
+	result.UniqueUsersPerCardType[key] = Object.keys(uniqueUsers.cardType[key]).length;
+});
+var cardCategoryKeys = Object.keys(uniqueUsers.cardCategory);
+cardCategoryKeys.forEach(function(key) {
+	result.UniqueUsersPerCardCategory[key] = Object.keys(uniqueUsers.cardCategory[key]).length;
+});
+var powerupKeys = Object.keys(uniqueUsers.powerupType);
+powerupKeys.forEach(function(key) {
+	result.UniqueUsersPerPowerupType[key] = Object.keys(uniqueUsers.powerupType[key]).length;
+});
+print(result);
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Total number of Played Cards from 01.02-10.02
+// Total number of points gained from Played Cards from 01.02-10.02
+// Total number of correct answers from Played Cards from 01.02-10.02 (won cards)
+
+var cards = db.getCollection('usergamecards').find({creationTime: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}}).toArray();
+var result = {
+	playedCards: cards.length,
+	pointsGained: 0,
+	correctAnswers: 0
+};
+
+cards.forEach(function(card) {
+	result.pointsGained += card.pointsAwarded;
+	result.correctAnswers += !card.pointsAwarded ? 0 : 1;
+});	
+print(result);
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------
+// Number of Unique users who entered match from 01.02-10.02 for certain match ids
+
+
+var selectedMatchIds = ['5a76cbe7bb2c151400101562', '5a76cbc6bb2c1514001014cc']
+var result = {
+	uniqueUsersEntered: 0
+};
+result.uniqueUsersEntered = db.getCollection('useractivities').count({room: {$in: selectedMatchIds}, createdAt: {$gt: ISODate('2018-02-01'), $lt: ISODate('2018-02-11')}});
+print(result);

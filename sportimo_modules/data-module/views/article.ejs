@@ -1,0 +1,210 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, minimal-ui" />
+
+    <link rel="stylesheet" type="text/css" href="/css/publication.css">
+<!--    <link rel="stylesheet" type="text/css" href="/css/zoom.css">-->
+    <script type="text/javascript" src="../../../../../js/iscroll-probe.js"></script>
+
+    <style>
+    #wrapper {
+        position: absolute;
+        z-index: 1;
+        top: 0px;
+        bottom: 0px;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    #image-container-wrapp{
+        width: 100%;
+        height: 36vh;
+        overflow: hidden;
+        display: flex;
+        justify-content: center; /* align horizontal */
+        align-items: center;
+        position:relative;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+
+    #image-container{
+        height: 100%;
+        min-width: 5000px;
+        background: white;
+        display: flex;
+        justify-content: center; /* align horizontal */
+        align-items: center;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+
+    #main-image{ 
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+
+    #scroller {
+        min-height: 100.1%;
+        position: absolute;
+        z-index: 1;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+        width: 100%;
+        -webkit-transform: translateZ(0);
+        -moz-transform: translateZ(0);
+        -ms-transform: translateZ(0);
+        -o-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-text-size-adjust: none;
+        -moz-text-size-adjust: none;
+        -ms-text-size-adjust: none;
+        -o-text-size-adjust: none;
+        text-size-adjust: none;
+    }
+    </style>
+
+    <script type="text/javascript">
+
+    var myScroll;
+    var imageContainer;
+    var imageContainerWrapp;
+    var mainImage;
+    var scroller;
+    var imgSizes = {w2h:1};
+    var mainWrapper;
+    var wrappHeight;
+    var blurHeight;
+    var releaseThres = 5;
+
+    var updatePosition = function() {
+        var y = myScroll.y || 0;
+        if(y>0){
+            var scale = (wrappHeight + y)/wrappHeight;
+            imageContainerWrapp.style.transform = `translateY(${-0.5*y}px) scale(${scale})`;
+            mainImage.style['-webkit-filter'] = `blur(0px)`;
+            mainImage.style.filter = `blur(0px)`;
+        }else {
+            var blurThres = wrappHeight-blurHeight;
+            imageContainerWrapp.style.transform = `translateY(0px) scale(1)`;
+            mainImage.style['-webkit-filter'] = `blur(0px)`;
+            mainImage.style.filter = `blur(0px)`;
+            if(y>-blurThres && y<-blurThres+9){
+                var blur = (9-y-blurThres)/3;
+                mainImage.style['-webkit-filter'] = `blur(${blur}px)`;
+                mainImage.style.filter = `blur(${blur}px)`;
+            }
+            else 
+            if(y<-blurThres){
+                mainImage.style['-webkit-filter'] = `blur(3px)`;
+                mainImage.style.filter = `blur($3px)`;
+                imageContainerWrapp.style.transform = `translateY(${-y-blurThres}px)`;
+            }
+        }
+        
+    }
+
+    var resize = function(){
+        wrappHeight = mainWrapper.offsetHeight*0.35;
+        blurHeight = wrappHeight*0.36;
+        var wrappWidth = imageContainerWrapp.offsetWidth;
+        var wrappW2H = wrappWidth/wrappHeight;
+        if(wrappW2H>imgSizes.w2h){
+            imgSizes.frameHeight = wrappWidth / imgSizes.w2h;
+        }else{
+            imgSizes.frameHeight = wrappHeight;
+        }
+        imageContainerWrapp.style.height = wrappHeight + 'px';
+        mainImage.style.height = imgSizes.frameHeight + 'px';
+        mainImage.style.width = imgSizes.w2h*imgSizes.frameHeight + 'px';
+        updatePosition();
+    }
+
+    window.onresize = resize;
+        var getImageDims = function(){
+        if(mainImage.naturalWidth){
+            imgSizes.w2h = mainImage.naturalWidth/mainImage.naturalHeight;
+            resize()
+        }else{
+            setTimeout(getImageDims, 20);
+        }
+    }
+
+    var loaded = function() {
+        mainWrapper = document.querySelector('#wrapper');
+        wrappHeight = mainWrapper.offsetHeight*0.35;
+        imageContainerWrapp = document.querySelector('#image-container-wrapp');
+        imageContainerWrapp.style.height = wrappHeight + 'px';
+        myScroll = new IScroll('#wrapper', {  probeType: 3, mouseWheel: true });
+        myScroll.on('scroll', updatePosition);
+        imageContainer = document.querySelector('#image-container');
+        scroller = document.querySelector('#scroller');
+        mainImage = document.querySelector('#main-image');
+        mainImage.style.display = '';
+        getImageDims();
+    }
+
+    document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+
+    </script>
+
+</head>
+
+<body>
+    <div id="mainpagee">
+        <div id="wrapperr">
+            <div id="scrollerr">
+                <div id="image-container-wrappp">
+                    <div id="image-containerr">
+                        <!-- <img  src="http://ep7t6ae.cloudimg.io/s/cdn/x/<%= photo %>">  -->
+                        <img  src="<%= photo %>"> 
+                        <!-- style='display:block' id="main-image" -->
+                    </div>
+                </div>
+                <section id="mainpage_body">
+                    <div class="news-container">                            
+                            <% if (language == "ar") { %>
+                                <div class="wysiwyg-block" style="text-align:right">
+                             <% } else { %>
+                                <div class="wysiwyg-block" style="text-align:left">
+                             <% } %>
+                        
+                            <div class="news-page">
+                                <div class="Date">
+                                    <%= publishDate %>
+                                </div>
+                                <div class="Title">                                        
+                                    <%= publication.title[language] %>
+                                </div>
+                            </div>
+
+                            <%- publication.text[language] %>
+
+                        </div>
+                </section>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+loaded();
+document.addEventListener('touchmove', function(e){
+    var height = mainWrapper.offsetHeight;
+    var width = mainWrapper.offsetWidth;
+    var touchX = e.touches[0].pageX;
+    var touchY = e.touches[0].pageY;
+    if(touchY<releaseThres || touchX<releaseThres || height-touchY<releaseThres || width-touchX<releaseThres){
+        myScroll.resetPosition(300);
+    }
+});
+</script>
+
+</html>
