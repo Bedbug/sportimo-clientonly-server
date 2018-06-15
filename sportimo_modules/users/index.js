@@ -849,6 +849,10 @@ apiRoutes.put('/v1/users/:id', function (req, res) {
     }
     else {
 
+        // Sanitize changed username
+        if (req.body.username)
+            req.body.username = req.body.username.replace(/[&\/\\#,+()$~ %.'":*?<>{}]/g, '_');
+        
         User.findOneAndUpdate({
             _id: req.params.id,
             deletedAt: null
@@ -1381,7 +1385,9 @@ apiRoutes.put('/v1/users/update/username', jwtMiddle, (req, res) => {
     if (req.body.username == req.decode.username)
         return res.json({ success: true });
 
-    User.findOne({ username: req.body.username, deletedAt: null }, (err, user) => {
+    var sanitizedUsername = req.body.username.replace(/[&\/\\#,+()$~ %.'":*?<>{}]/g, '_');
+
+    User.findOne({ username: sanitizedUsername, deletedAt: null }, (err, user) => {
         if (err) {
             logger.log('error', err.stack, req.body);
             return res.json({ success: false });
