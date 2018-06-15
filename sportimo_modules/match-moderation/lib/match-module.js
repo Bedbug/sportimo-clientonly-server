@@ -620,7 +620,7 @@ var matchModule = function (match, PubChannel, SubChannel, shouldInitAutoFeed) {
 
 
                             var msgE2 = {
-                                en: `️⚽ ${matchName.en} is kicking off! Can you to rank in the top-10? Join the game and see!`,
+                                en: `️⚽ ${matchName.en} is kicking off! Can you rank in the top-10? Join the game and see!`,
                                 ar: `️⚽ مباراة ${matchName.ar} ستبدأ!
 هل ستكون مع أفضل 10 لاعبين؟ شارك باللعب لتعرف!`
                             };

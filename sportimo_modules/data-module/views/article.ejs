@@ -152,7 +152,7 @@
         getImageDims();
     }
 
-    document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
+    // document.addEventListener('touchmove', function (e) { e.preventDefault(); }, false);
 
     </script>
 
@@ -196,15 +196,15 @@
 </body>
 <script type="text/javascript">
 loaded();
-document.addEventListener('touchmove', function(e){
-    var height = mainWrapper.offsetHeight;
-    var width = mainWrapper.offsetWidth;
-    var touchX = e.touches[0].pageX;
-    var touchY = e.touches[0].pageY;
-    if(touchY<releaseThres || touchX<releaseThres || height-touchY<releaseThres || width-touchX<releaseThres){
-        myScroll.resetPosition(300);
-    }
-});
+// document.addEventListener('touchmove', function(e){
+//     var height = mainWrapper.offsetHeight;
+//     var width = mainWrapper.offsetWidth;
+//     var touchX = e.touches[0].pageX;
+//     var touchY = e.touches[0].pageY;
+//     if(touchY<releaseThres || touchX<releaseThres || height-touchY<releaseThres || width-touchX<releaseThres){
+//         myScroll.resetPosition(300);
+//     }
+// });
 </script>
 
 </html>
