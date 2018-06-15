@@ -968,6 +968,10 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
         // Generate a unique username 
         var hexCompressed = crypto.createHash('md5').update(newUser.id).digest('base64').replace(/[+\/=]/g, '');
         newUser.username = moniker.choose();
+        var usernameParts = newUser.username.split("-");
+        if (usernameParts.length > 1)
+            newUser.username = usernameParts[0].charAt(0).toUpperCase() + usernameParts[0].substr(1) + usernameParts[1].charAt(0).toUpperCase() + usernameParts[1].substr(1);
+
         if (social_username)
             newUser.username = social_username; // test for uniqueness
 
