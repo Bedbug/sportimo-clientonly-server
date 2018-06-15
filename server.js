@@ -45,9 +45,6 @@ var express = require("express"),
     morgan = require('morgan');
 
 
-var TestSuite = {
-    done: null
-};
 
 var app = module.exports = exports.app = express();
 var version = "0.9.11";
@@ -176,49 +173,40 @@ airbrake.handleExceptions();
 var mongoConnection = 'mongodb://' + mongoCreds[process.env.NODE_ENV].user + ':' + mongoCreds[process.env.NODE_ENV].password + '@' + mongoCreds[process.env.NODE_ENV].url;
 mongoose.Promise = global.Promise;
 
+
+var leaderboards_module;
+var questions_module;
+var users_module;
+var data_module;
+var polls_module;
+var early_access_module;
+var gamecards;
+
 mongoose.connect(mongoConnection, function (err, res) {
     if (err) {
         console.log('ERROR connecting to: ' + mongoConnection + '. ' + err);
     }
     else {
-         console.log("[Game Server] MongoDB Connected.");
+        console.log("[Game Server] MongoDB Connected.");
+        // Module value assignment AFTER database connection is established
+
+        leaderboards_module = require('./sportimo_modules/leaderpay');
+
+        questions_module = require('./sportimo_modules/questions');
+
+
+        users_module = require('./sportimo_modules/users');
+
+        data_module = require('./sportimo_modules/data-module');
+
+        polls_module = require('./sportimo_modules/polls');
+
+        early_access_module = require('./sportimo_modules/early-access');
+
+        gamecards = require('./sportimo_modules/gamecards');
+        gamecards.connect(mongoose, PublishChannel, SubscribeChannel);
     }
 });
-
-/* Modules */
-// if (process.env.NODE_ENV != "production") {
-
-
-//var liveMatches = require('./sportimo_modules/match-moderation');
-//if (PublishChannel && SubscribeChannel)
-//    liveMatches.SetupRedis(PublishChannel, SubscribeChannel, redisCreds.channel);
-
-//liveMatches.SetupMongoDB(mongoose);
-//liveMatches.SetupAPIRoutes(app);
-//liveMatches.init(TestSuite.done);
-//TestSuite.moderation = liveMatches;
-// }
-
-
-//app.use('/offline_data/', require('./sportimo_modules/offline_data/api/ondemand.js'));
-
-
-var leaderboards_module = require('./sportimo_modules/leaderpay');
-
-var questions_module = require('./sportimo_modules/questions');
-
-
-var users_module = require('./sportimo_modules/users');
-
-var data_module = require('./sportimo_modules/data-module');
-
-var polls_module = require('./sportimo_modules/polls');
-
-var early_access_module = require('./sportimo_modules/early-access');
-
-// Initialize the gamecards module
-var gamecards = require('./sportimo_modules/gamecards');
-gamecards.connect(mongoose, PublishChannel, SubscribeChannel);
 
 
 
@@ -272,7 +260,6 @@ app.use(function (error, request, response, next) {
     //return response.status(500).json({error: 'Oops! The service is experiencing some unexpected issues. Please try again later.'});
 });
 
-TestSuite.server = app;
 
 
 // ROUTE FOR PLATFORM SETTINGS
@@ -294,4 +281,4 @@ process.on('uncaughtException', (err) => {
     throw err;
 });
 
-module.exports = TestSuite;
+module.exports = app;
