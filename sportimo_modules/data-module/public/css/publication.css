@@ -25,10 +25,9 @@ iframe {
 
 body {
     overflow-x: hidden;
-/*
+
    overflow-y: scroll;
-    overflow-scrolling: touch;
-*/
+  /* overflow-scrolling: touch; */
      font-family: "Exo_2", sans-serif;
     font-weight: 400;
     font-size: 18px;
@@ -54,7 +53,7 @@ img{
 .Title{
     font-weight: bold;
     font-size: 22px;
-    line-height: 28px;
+    line-height: 30px;
     /* word-break: break-all;
     word-wrap: break-word; */
    padding: 0 15px 20px 15px;

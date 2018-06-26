@@ -1,7 +1,7 @@
 // Module dependencies.
 var mongoose = require('mongoose'),
-    Score = require('../../models/score'),
-    Users = require('../../models/user'),
+    Score = mongoose.models.scores,
+    Users = mongoose.models.users,
     api = {},
     _ = require('lodash');
 
@@ -189,12 +189,55 @@ api.getSocialLeaderboardWithRank = function (id, body, mid, cb) {
     })
 
 
-
-
-
-
-
 };
+
+api.getMatchLeaderboard = function(uid, mid, cb){
+    var q = Score.find({game_id: mid});
+    
+    q.select('user_id user_name pic score country level');
+    q.sort({ "score": "-1" });
+
+    return q.exec(function (err, leaderboard) {
+
+        user = _.find(leaderboard, { user_id: uid })
+        if(user)
+        user = user.toObject();
+        else{
+            console.log("Could not find user with id:"+ uid+" in leaderboard. Please investigate.")
+            return cbf(cb, "Could not find user in leaderboard" , null);
+        }
+        
+        user._id = user.user_id;
+        delete user.user_id;
+        user.name = user.user_name;
+        delete user.user_name;
+        userIndex = _.findIndex(leaderboard, { user_id: uid });
+        user.rank = userIndex + 1;
+        
+        var result = [];
+        
+        result = _.map(leaderboard, function (value, key) {
+            var leadItem = {
+            "_id": value.user_id,
+            "score": value.score,
+            "name": value.user_name,
+            "level": value.level,
+            "pic": value.pic,
+            "country": value.country
+        }        
+
+        return leadItem;
+    });
+
+        var ldata = {
+            user: user,
+            leaderboad: result
+        }
+
+        return cbf(cb, err, ldata);
+    });
+
+}
 
 api.getLeaderboardWithRank = function (id, body, cb) {
 
@@ -225,88 +268,17 @@ api.getLeaderboardWithRank = function (id, body, cb) {
                 };
             
             
-            aggregateScores();
-        //     var q = Score.find(leader_conditions);
-        //     return q.exec(function (err, leaderboard) {
-        //         var result;
-        //         // if(leader_conditions.game_id)
-        //         // result = leaderboard;
-        //         // else
-        //         result =
-        //             _.chain(leaderboard)
-        //                 .sortBy(function (value) { // sort the array descending
-        //                     return -value.score;
-        //                 })
-        //                 .groupBy("user_id")
-        //                 .map(function (value, key) {
-        //                     var scores = _.chain(value).take(bestscores).map("score").value();
-        //                     var score = _.sum(scores);
-        //                     var leadItem = {
-        //                         "_id": value[0].user_id,
-        //                         "score": score,
-        //                         "name": value[0].user_name,
-        //                         "level": value[0].level,
-        //                         "pic": value[0].pic,
-        //                         "country": value[0].country
-        //                     }
-
-        //                     if (shouldUseScores)
-        //                         leadItem["scores"] = scores;
-
-        //                     return leadItem;
-        //                 })
-        //                 .sortBy(function (value) { // sort the array descending
-        //                     return -value.score;
-        //                 })
-        //                 .value();
-
-
-        //         if (result.length == 0)
-        //             return cbf(cb, err, { user: {}, leaderboad: [] });
-
-
-        //         // SPI-28 | Create Rankings based on Scores and then Levels
-        //         result = Ranked(result);
-
-        //         user = _.find(result, { _id: uid });
-
-        //         // if (user) {
-        //         //     rank = _.size(_.filter(result, function (o) {
-        //         //         if (o._id != user._id && o.score > user.score)
-        //         //             return true;
-        //         //         else
-        //         //             return false;
-        //         //     }));
-        //         //     user.rank = rank + 1;
-        //         // }
-
-        //         var ldata = {
-        //             user: user,
-        //             leaderboad: result
-        //         }
-        //         if (body.sponsor)
-        //             ldata["sponsor"] = body.sponsor;
-
-        //         if (body.info)
-        //             ldata["info"] = body.info;
-
-
-        //         return cbf(cb, err, ldata);
-
-            // });
+            aggregateScores();        
         });
     } else {
         aggregateScores();       
     }
 
-    function aggregateScores(){
-        console.log(JSON.stringify(leader_conditions));
+    function aggregateScores(){        
          var q = Score.find(leader_conditions);
         return q.exec(function (err, leaderboard) {
             var result;
-            // if(leader_conditions.game_id)
-            // result = leaderboard;
-            // else
+
             result =
                 _.chain(leaderboard)
                     .sortBy(function (value) { // sort the array descending
@@ -345,16 +317,6 @@ api.getLeaderboardWithRank = function (id, body, cb) {
 
             user = _.find(result, { _id: uid });
 
-            // if (user) {
-            //     rank = _.size(_.filter(result, function (o) {
-            //         if (o._id != user._id && o.score > user.score)
-            //             return true;
-            //         else
-            //             return false;
-            //     }));
-            //     user.rank = rank + 1;
-            // }
-
             var ldata = {
                 user: user,
                 leaderboad: result
@@ -370,64 +332,6 @@ api.getLeaderboardWithRank = function (id, body, cb) {
 
         });
     }
-
-
-    // var leader_conditions = parseConditons(body);
-    // var uid = id;
-
-    // var q = Score.aggregate({
-    //     $match: leader_conditions
-    // });
-
-    // q.group({
-    //     _id: "$user_id",
-    //     score: { $sum: "$score" },
-    //     name: { $first: '$user_name' },
-    //     level: { $max: '$level' },
-    //     pic: { $last: '$pic' },
-    //     country: { $first: '$country' }
-    // });
-
-
-    // if (skip != undefined)
-    //     q.skip(skip * 1);
-
-    // if (limit != undefined)
-    //     q.limit(limit * 1);
-
-
-    // q.sort({ score: -1 });
-
-    // var rank;
-    // var user;
-    // q.exec(function (err, leaderboard) {
-
-    //     if (leaderboard.length == 0)
-    //         return cbf(cb, err, { user: {}, leaderboad: [] });
-
-    //     user = _.find(leaderboard, { _id: uid });
-
-    //     if (user) {
-    //         rank = _.size(_.filter(leaderboard, function (o) {
-    //             if (o._id != user._id && o.score > user.score)
-    //                 return true;
-    //             else
-    //                 return false;
-    //         }));
-    //         user.rank = rank + 1;
-    //     }
-
-    //     var ldata = {
-    //         user: user,
-    //         leaderboad: leaderboard
-    //     }
-    //     if (body.sponsor)
-    //         ldata["sponsor"] = body.sponsor;
-
-
-    //     return cbf(cb, err, ldata);
-    // })
-
 
 };
 

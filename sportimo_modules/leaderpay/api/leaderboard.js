@@ -92,6 +92,16 @@ api.allPlayersWithRank = function (req, res) {
 };
 router.get('/v1/leaderboards/:uid/:country/allplayers', api.allPlayersWithRank);
 
+api.matchLeaderboard = function(req,res){
+	leaderboard.getMatchLeaderboard(req.params.uid, req.params.mid, function (err, data) {
+		if (err) {
+			res.status(404).json(err);
+		} else {
+			res.status(200).json(data);
+		}
+	});
+}
+
 
 api.allPlayersForMatchWithRank = function (req, res) {
 	// first request season pools
@@ -134,7 +144,8 @@ api.allPlayersForMatchWithRank = function (req, res) {
 
     })
 };
-router.get('/v1/leaderboards/:uid/:country/match/:mid', api.allPlayersForMatchWithRank);
+// router.get('/v1/leaderboards/:uid/:country/match/:mid', api.allPlayersForMatchWithRank);
+router.get('/v1/leaderboards/:uid/:country/match/:mid', api.matchLeaderboard)
 
 api.getMiniMatchLeaderboard = function (req, res) {
 	// first request season pools
