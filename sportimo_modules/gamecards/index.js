@@ -1110,6 +1110,8 @@ gamecards.addUserInstance = function (matchId, gamecard, callback) {
 // First get the userGamecard from mongo and assert that it exists and that its status is 1.
 // Then, update it accordingly
 gamecards.updateUserInstance = function (userGamecardId, options, outerCallback) {
+
+    const itsNow = moment.utc();
     async.waterfall([
         function (callback) {
             db.models.userGamecards.findById(userGamecardId, function (error, userGamecard) {
