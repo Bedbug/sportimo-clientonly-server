@@ -1,7 +1,7 @@
 // Module dependencies.
-var mongoose = require('mongoose'),
-    Score = mongoose.models.scores,
-    Users = mongoose.models.users,
+var mongoose = require('mongoose');
+    Score = require('../../models/score'),
+   Users = require('../../models/user'),
     api = {},
     _ = require('lodash');
 
