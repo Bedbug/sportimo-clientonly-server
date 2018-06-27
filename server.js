@@ -47,7 +47,10 @@ var express = require("express"),
 
 
 var app = module.exports = exports.app = express();
-var version = "0.9.11";
+
+/*
+ * Delegated this to cluster-startup script
+
 // Create Server
 var server = http.createServer(app);
 var port = (process.env.PORT || 3030)
@@ -57,6 +60,8 @@ app.listen(port, function () {
     console.log("-------  Environment: " + process.env.NODE_ENV);
     console.log("------------------------------------------------------------------------------------");
 });
+
+*/
 
 /*  Winston Logger Configuration */
 

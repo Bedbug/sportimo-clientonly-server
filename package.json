@@ -1,15 +1,15 @@
 {
   "name": "sportimo-clientonly-server",
   "scripts": {
-    "start": "node server.js"
+    "start": "node cluster-startup.js"
   },
   "version": "0.0.5",
   "dependencies": {
     "airbrake": "^2.1.0",
-    "amqplib": "^0.5.1",
     "async": "^1.5.2",
     "bcryptjs": "^2.3.0",
     "body-parser": "",
+    "cluster": "^0.7.7",
     "cors": "latest",
     "crypto": "0.0.3",
     "crypto-js": "^3.1.6",
@@ -21,7 +21,6 @@
     "jsonwebtoken": "^8.2.0",
     "jwt-decode": "^1.5.1",
     "lodash": "^4.8.2",
-    "memwatch-next": "^0.3.0",
     "method-override": "^2.3.5",
     "mitm": "^1.2.0",
     "moment": "^2.20.1",
