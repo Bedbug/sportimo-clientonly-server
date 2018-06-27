@@ -59,7 +59,6 @@ const bootstrap = function () {
              * Listen on provided port, on all network interfaces.
              */
 
-            server.listen(port);
             server.listen(port, function () {
                 //logger.log('Express server listening on port ' + server.address().port);
                 logger.log("------------------------------------------------------------------------------------");
