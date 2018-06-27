@@ -19,7 +19,7 @@ const logger = console;
 
 const bootstrap = function () {
 
-    if (currentEnv == "production") {
+    if (currentEnv == "productione") {
         if (cluster.isMaster) {
             const numWorkers = require('os').cpus().length;
 
