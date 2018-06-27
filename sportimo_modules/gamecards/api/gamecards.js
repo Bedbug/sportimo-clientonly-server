@@ -188,15 +188,15 @@ module.exports = function (gamecardModule) {
         gamecardModule.updateUserInstance(req.params.userGamecardId, req.body, function(error, validationError, data) {
             if (error) {
                 log.log('error', error.stack, req.body);
-                return res.status(500).json({ error: error.message, userGamecard: data });
+                return res.status(500).json({ error: error.message, errorCode: 10000, userGamecard: data });
             }
             if (validationError)
             {
                 var itsNow = moment.utc();
-                return res.status(403).json({ error: validationError, responseTimeUtc: itsNow });
+                return res.status(403).json({ error: validationError.message, errorCode: validationError.code, responseTimeUtc: itsNow });
             }
             log.debug(data);
-            return res.status(200).json({ error: null, userGamecard: data });
+            return res.status(200).json({ error: null, errorCode: null, userGamecard: data });
         });
     });
     

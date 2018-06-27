@@ -645,107 +645,121 @@ gamecards.createDefinitionFromTemplate = function (template, match) {
 
 // Select all gamecardDefinitions, and filter for those that have remainingUserInstances in their userGamecards counterparts null or > 0
 gamecards.getUserInstances = function (matchId, userId, cbk) {
-    async.waterfall([
-        function (callback) {
-            db.models.scheduled_matches
-                .findById(matchId, 'settings state home_team away_team home_score away_score')
-                .populate("home_team away_team", "name")
-                .exec(function (error, scheduledMatch) {
-                if (error)
-                    return callback(error);
-
-                if (scheduledMatch == null)
-                    return callback(new Error("Match id " + matchId + " was not found."));
-
-                callback(null, scheduledMatch.settings, scheduledMatch.state);
-            });
+    async.parallel([
+        (callback) => {
+            return db.models.scheduled_matches
+                .findById(matchId, {
+                    settings: 1,
+                    state: 1,
+                    home_team: 1,
+                    away_team: 1,
+                    home_score: 1,
+                    away_score: 1,
+                    timeline: { $slice: -1 }
+                })
+                //.populate("home_team away_team", "name")
+                .exec(callback);
         },
-        function (settings, matchState, callback) {
-            db.models.gamecardDefinitions.find({ matchid: matchId, isVisible: true, isActive: true, status: { $ne: 2 } }, function (error, definitions) {
-                if (error)
-                    return callback(error);
-                callback(null, definitions, settings, matchState);
-            });
+        (callback) => {
+            return db.models.gamecardDefinitions.find({ matchid: matchId, isVisible: true, isActive: true, status: { $ne: 2 } }, callback);
         },
-        function (definitions, settings, matchState, callback) {
-            // from the definitions, filter out those that the user has played maxUserInstances
-            db.models.userGamecards.find({ matchid: matchId, userid: userId }, 'cardType status gamecardDefinitionId', function (error, userCards) {
-                if (error)
-                    return callback(error);
+        (callback) => {
+            return db.models.userGamecards.find({ matchid: matchId, userid: userId }, 'cardType status gamecardDefinitionId', callback);
+        }
+    ], (asyncErr, asyncResult) => {
+        if (asyncErr) {
+            log.error(`Error while getting user ${userid} gamecard definitions: ${asyncErr.stack}`);
+            return cbk(asyncErr);
+        }
 
-                let definitionsLookup = {};
-                _.forEach(definitions, function (definition) {
-                    if (!definitionsLookup[definition.id])
-                        definitionsLookup[definition.id] = definition;
+        const match = asyncResult[0];
+
+        if (!match)
+            return cbk(new Error("Match id " + matchId + " was not found."));
+
+        const settings = match.settings;
+        const matchState = match.state;
+        const definitions = asyncResult[1];
+        const userCards = asyncResult[2];
+
+
+        let definitionsLookup = {};
+        _.forEach(definitions, function (definition) {
+            if (!definitionsLookup[definition.id])
+                definitionsLookup[definition.id] = definition;
+        });
+
+        let instantCount = 0;
+        let presetInstantCount = 0;
+        let overallCount = 0;
+        let totalCount = userCards.length;
+        if (settings && settings.gameCards && settings.gameCards.totalcards && settings.gameCards.totalcards <= totalCount)
+            return callback(null, []);
+
+        _.forEach(userCards, function (usercard) {
+            if (usercard.cardType == 'Overall')
+                overallCount++;
+            else if (usercard.cardType == 'Instant')
+                instantCount++;
+            else if (usercard.cardType == 'PresetInstant')
+                presetInstantCount++;
+        });
+
+        let instancesPerDefinition = _.groupBy(userCards, 'gamecardDefinitionId');
+        let definitionIdsToDrop = [];
+        _.forEach(instancesPerDefinition, function (instancePerDefinition) {
+            if (instancePerDefinition.length > 0) {
+                let key = instancePerDefinition[0].gamecardDefinitionId;
+                // From the definitions, remove those that have as usercards equal or more instances than maxUserInstances
+                if (definitionsLookup[key] && definitionsLookup[key].maxUserInstances && instancePerDefinition.length >= definitionsLookup[key].maxUserInstances)
+                    definitionIdsToDrop.push(key);
+                // From the definitions, remove those where an existing user gamecacrd is currently pending or active and is pending for resolution, for all card types except PresetInstant.
+                _.forEach(instancePerDefinition, function (userGamecard) {
+                    if (userGamecard.status != 2 && userGamecard.cardType != 'PresetInstant' && _.indexOf(definitionIdsToDrop, key) == -1)
+                        definitionIdsToDrop.push(key);
                 });
+                //log.info(instancePerDefinition.length);
+            }
+        });
 
-                let instantCount = 0;
-                let presetInstantCount = 0;
-                let overallCount = 0;
-                let totalCount = userCards.length;
-                if (settings && settings.gameCards && settings.gameCards.totalcards && settings.gameCards.totalcards <= totalCount)
-                    return callback(null, []);
-
-                _.forEach(userCards, function (usercard) {
-                    if (usercard.cardType == 'Overall')
-                        overallCount++;
-                    else if (usercard.cardType == 'Instant')
-                        instantCount++;
-                    else if (usercard.cardType == 'PresetInstant')
-                        presetInstantCount++;
-                });
-
-                let instancesPerDefinition = _.groupBy(userCards, 'gamecardDefinitionId');
-                let definitionIdsToDrop = [];
-                _.forEach(instancesPerDefinition, function (instancePerDefinition) {
-                    if (instancePerDefinition.length > 0) {
-                        let key = instancePerDefinition[0].gamecardDefinitionId;
-                        // From the definitions, remove those that have as usercards equal or more instances than maxUserInstances
-                        if (definitionsLookup[key] && definitionsLookup[key].maxUserInstances && instancePerDefinition.length >= definitionsLookup[key].maxUserInstances)
-                            definitionIdsToDrop.push(key);
-                        // From the definitions, remove those where an existing user gamecacrd is currently pending or active and is pending for resolution, for all card types except PresetInstant.
-                        _.forEach(instancePerDefinition, function (userGamecard) {
-                            if (userGamecard.status != 2 && userGamecard.cardType != 'PresetInstant' && _.indexOf(definitionIdsToDrop, key) == -1)
-                                definitionIdsToDrop.push(key);
-                        });
-                        //log.info(instancePerDefinition.length);
-                    }
-                });
-
-                if (settings && settings.gameCards && settings.gameCards.overall && settings.gameCards.overall <= overallCount) {
-                    _.forEach(definitions, function (definition) {
-                        if (definition.cardType == 'Overall' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
-                            definitionIdsToDrop.push(definition.id);
-                    });
-                }
-                let itsNow = moment.utc();
-                // If the match has not yet started, drop all Instant card definitions
-                if (matchState == 0 || (settings && settings.gameCards && settings.gameCards.instant && settings.gameCards.instant <= instantCount)) {
-                    _.forEach(definitions, function (definition) {
-                        if (definition.cardType == 'Instant' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
-                            definitionIdsToDrop.push(definition.id);
-                    });
-                }
-                // If the match has started already, drop all PresetInstant card definitions
-                if (matchState > 0 || (settings && settings.gameCards && settings.gameCards.presetInstant && settings.gameCards.presetInstant <= presetInstantCount)) {
-                    _.forEach(definitions, function (definition) {
-                        if (definition.cardType == 'PresetInstant' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
-                            definitionIdsToDrop.push(definition.id);
-                    });
-                }
-
-                let userGamecardDefinitions = null;
-                userGamecardDefinitions = _.remove(definitions, function (definition) {
-                    return _.indexOf(definitionIdsToDrop, definition.id) == -1;
-                });
-                callback(null, userGamecardDefinitions);
+        if (settings && settings.gameCards && settings.gameCards.overall && settings.gameCards.overall <= overallCount) {
+            _.forEach(definitions, function (definition) {
+                if (definition.cardType == 'Overall' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
+                    definitionIdsToDrop.push(definition.id);
             });
         }
-    ], function (error, definitions) {
-        if (error)
-            return cbk(error);
+        let itsNow = moment.utc();
+        // If the match has not yet started, drop all Instant card definitions
+        if (matchState == 0 || (settings && settings.gameCards && settings.gameCards.instant && settings.gameCards.instant <= instantCount)) {
+            _.forEach(definitions, function (definition) {
+                if (definition.cardType == 'Instant' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
+                    definitionIdsToDrop.push(definition.id);
+            });
+        }
+        // If the match has started already, drop all PresetInstant card definitions
+        if (matchState > 0 || (settings && settings.gameCards && settings.gameCards.presetInstant && settings.gameCards.presetInstant <= presetInstantCount)) {
+            _.forEach(definitions, function (definition) {
+                if (definition.cardType == 'PresetInstant' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
+                    definitionIdsToDrop.push(definition.id);
+            });
+        }
+        // If the match has started already and the last event in the timeline is a Penalty, drop all Goal definitions
+        if (_.indexOf([1, 3, 5, 7], matchState) > -1 && match.timeline[0] && match.timeline[0].events.length > 0) {
+            const lastEvent = _.last(match.timeline[0].events);
+            if (lastEvent && lastEvent.type == 'Penalty' && lastEvent.created && itsNow.isBefore(moment.utc(lastEvent.created).add(50, 's'))) {
+                _.forEach(definitions, function (definition) {
+                    if (definition.cardType == 'Instant' && definition.primaryStatistic == 'Goal' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
+                        definitionIdsToDrop.push(definition.id);
+                });
+            }
+        }
 
-        cbk(null, definitions);
+        let userGamecardDefinitions = null;
+        userGamecardDefinitions = _.remove(definitions, function (definition) {
+            return _.indexOf(definitionIdsToDrop, definition.id) == -1;
+        });
+
+        return cbk(null, userGamecardDefinitions);
     });
 };
 
@@ -942,21 +956,26 @@ gamecards.addUserInstance = function (matchId, gamecard, callback) {
             return callback(null, new Error('Bad request, validation error in request body for this user gamecard: ' + validationOutcome.error));
         }
 
-        let itsNow = moment.utc();
-        let creationMoment = moment.utc(gamecard.creationTime);
-
-        var created = creationMoment.toISOString();
-        // console.log("Created: " + created);
-        var activated = gamecardDefinition.cardType == 'PresetInstant' ? null : creationMoment.add(gamecardDefinition.activationLatency, 'ms').toISOString();
         if (gamecardDefinition.cardType == 'PresetInstant') {
             if (gamecard.minute >= 45)
                 gamecard.segment = 3;
             else
                 gamecard.segment = 1;
         }
-        // console.log("Activated: " + activated);
-        var terminated = creationMoment.add(gamecardDefinition.duration, 'ms').toISOString();
-        // console.log("Terminated: " + terminated);
+
+        let itsNow = moment.utc();
+        // Use the server's time for computing the card's creationTime instead of what the client sends for it inside the body
+        let creationMoment = itsNow; //moment.utc(gamecard.creationTime);
+
+        var created = creationMoment.toISOString();
+        var activated = null;
+        var terminated = null;
+        if (gamecardDefinition.cardType != 'PresetInstant') {
+            activated = creationMoment.clone().add(gamecardDefinition.activationLatency, 'ms').toISOString();
+            terminated = creationMoment.clone().add(gamecardDefinition.activationLatency, 'ms').add(gamecardDefinition.duration, 'ms').toISOString();
+        }
+        // If the match has started, override the card's minute with the match's one
+        var minute = gamecard.minute;
 
         // Store the mongoose model
         let newCard = null;
@@ -968,7 +987,7 @@ gamecards.addUserInstance = function (matchId, gamecard, callback) {
                 title: gamecardDefinition.title,
                 image: gamecardDefinition.image,
                 primaryStatistic: gamecardDefinition.primaryStatistic,
-                minute: gamecard.minute,
+                minute: minute,
                 segment: gamecard.segment,
                 duration: gamecardDefinition.duration || null,
                 activationLatency: gamecardDefinition.activationLatency || null,
@@ -1097,23 +1116,47 @@ gamecards.updateUserInstance = function (userGamecardId, options, outerCallback)
                 if (error)
                     return callback(error);
 
-                if (!userGamecard)
-                    return callback(null, "The userGamecardId " + userGamecardId + " is not found", null);
+                if (!userGamecard) {
+                    error = new Error("The userGamecardId " + userGamecardId + " is not found");
+                    error.code = 10001;
+                    return callback(null, error, null);
+                }
 
-                if (userGamecard.status == 2)
-                    return callback(null, "The userGamecardId " + userGamecard.id + " is completed, no specials can be played.", null);
+                if (userGamecard.status == 2) {
+                    error = new Error("The userGamecardId " + userGamecard.id + " is completed, no specials can be played.");
+                    error.code = 10002;
+                    return callback(null, error, null);
+                }
 
-                if (options.doubleTime && userGamecard.cardType == 'Overall')
-                    return callback(null, "Cannot add double time in an Overall gamecard " + userGamecard.id, null);
+                if (options.doubleTime && userGamecard.cardType == 'Overall') {
+                    error = new Error("Cannot add double time in an Overall gamecard " + userGamecard.id);
+                    error.code = 10003;
+                    return callback(null, error, null);
+                }
 
-                if (userGamecard.isDoublePoints == true && userGamecard.isDoubleTime == true)
-                    return callback(null, "All available special power-ups are already played on this userGamecard " + userGamecard.id, null);
+                if (userGamecard.isDoublePoints == true && userGamecard.isDoubleTime == true) {
+                    error = new Error("All available special power-ups are already played on this userGamecard " + userGamecard.id);
+                    error.code = 10004;
+                    return callback(null, error, null);
+                }
 
-                if (options.doublePoints && options.doublePoints == true && userGamecard.isDoublePoints && userGamecard.isDoublePoints == true)
-                    return callback(null, "The Double Points power-up is already played on this userGamecard " + userGamecard.id, null);
+                if (options.doublePoints && options.doublePoints == true && userGamecard.isDoublePoints && userGamecard.isDoublePoints == true) {
+                    error = new Error("The Double Points power-up is already played on this userGamecard " + userGamecard.id);
+                    error.code = 10005;
+                    return callback(null, error, null);
+                }
 
-                if (options.doubleTime && options.doubleTime == true && userGamecard.isDoubleTime && userGamecard.isDoubleTime == true)
-                    return callback(null, "The Double Time power-up is already played on this userGamecard " + userGamecard.id, null);
+                if (options.doubleTime && options.doubleTime == true && userGamecard.isDoubleTime && userGamecard.isDoubleTime == true) {
+                    error = new Error("The Double Time power-up is already played on this userGamecard " + userGamecard.id);
+                    error.code = 10006;
+                    return callback(null, error, null);
+                }
+
+                if (options.doublePoints && options.doublePoints == true && userGamecard.specials['DoublePoints'] && userGamecard.specials['DoublePoints'].activationLatency && userGamecard.terminationTime && itsNow.clone().add(userGamecard.specials['DoublePoints'].activationLatency, 'milliseconds').isAfter(moment.utc(userGamecard.terminationTime))) {
+                    error = new Error("Not enough time to activate this Double Points power-up card");
+                    error.code = 10009;
+                    return callback(null, error, null);
+                }
 
                 callback(null, null, userGamecard);
             });
@@ -1126,11 +1169,11 @@ gamecards.updateUserInstance = function (userGamecardId, options, outerCallback)
                 .findById(userGamecard.matchid)
                 .populate('home_team away_team', 'name')
                 .exec(function (error, match) {
-                if (error)
-                    return callback(error);
+                    if (error)
+                        return callback(error);
 
-                callback(null, null, userGamecard, match);
-            });
+                    callback(null, null, userGamecard, match);
+                });
         },
         function (validationError, userGamecard, match, callback) {
             if (validationError)
@@ -1146,8 +1189,11 @@ gamecards.updateUserInstance = function (userGamecardId, options, outerCallback)
                 });
 
                 if (match.settings && match.settings.gameCards && match.settings.gameCards.specials) {
-                    if (count >= match.settings.gameCards.specials)
-                        return callback(null, 'This user has played already the allowed number of special Gamecards', null, null);
+                    if (count >= match.settings.gameCards.specials) {
+                        error = new Error('This user has played already the allowed number of special Gamecards');
+                        error.code = 10007;
+                        return callback(null, error, null);
+                    }
                 }
 
                 callback(null, null, userGamecard, match);
@@ -1165,8 +1211,11 @@ gamecards.updateUserInstance = function (userGamecardId, options, outerCallback)
         if (options.doublePoints && options.doublePoints == true) {
             let special = userGamecard.specials['DoublePoints'];
 
-            if (special.status != 0)
-                return outerCallback(null, "The Double Points power-up is already played on this userGamecard " + userGamecard.id, null);
+            if (special.status != 0) {
+                error = new Error("The Double Points power-up is already played on this userGamecard " + userGamecard.id);
+                error.code = 10005;
+                return callback(null, error, null);
+            }
 
             special.creationTime = itsNow.clone().toDate();
 
@@ -1191,8 +1240,11 @@ gamecards.updateUserInstance = function (userGamecardId, options, outerCallback)
         if (options.doubleTime && options.doubleTime == true) {
             let special = userGamecard.specials['DoubleTime'];
 
-            if (special.status != 0)
-                return outerCallback(null, "The Double Time power-up is already played on this userGamecard " + userGamecard.id, null);
+            if (special.status != 0) {
+                error = new Error("The Double Time power-up is already played on this userGamecard " + userGamecard.id);
+                error.code = 10006;
+                return callback(null, error, null);
+            }
 
             special.creationTime = itsNow.toDate();
 
@@ -1218,7 +1270,7 @@ gamecards.updateUserInstance = function (userGamecardId, options, outerCallback)
             function (err, result) {
                 if (err)
                     return outerCallback(err);
-                
+
                 outerCallback(null, null, result);
             });
     });
@@ -1515,7 +1567,7 @@ gamecards.Tick = function () {
                         //     }, 200);
                         // },
                         function (parallelCbk) {
-                            db.models.userGamecards.find({ matchid: match.id, status: 0, cardType: 'PresetInstant', minute: { $lte: match.time } }, function (error, userGamecards) {
+                            db.models.userGamecards.find({ matchid: match.id, status: 0, cardType: 'PresetInstant', minute: { $lte: match.time }, segment: { $lte: match.state } }, function (error, userGamecards) {
                                 if (userGamecards.length > 0)
                                     console.log("Preset Found");
 
@@ -1531,7 +1583,7 @@ gamecards.Tick = function () {
                                 _.forEach(userGamecards, function (userGamecard) {
                                     userGamecard.status = 1; // activated
                                     userGamecard.activationTime = itsNow.clone().toDate();
-                                    userGamecard.terminationTime = itsNow.clone().add(userGamecard.duration || 0, 'ms');
+                                    userGamecard.terminationTime = itsNow.clone().add(userGamecard.duration || 0, 'ms').toDate();
                                 });
 
                                 async.each(userGamecards, function (userGamecard, cardCbk) {
@@ -1780,12 +1832,19 @@ gamecards.CheckIfWins = function (gamecard, isCardTermination, simulatedWinTime,
     gamecard.wonTime = itsNow.toDate();
     // Award points
     if (gamecard.cardType == "Instant" || gamecard.cardType == "PresetInstant") {
-        let startInt = moment.utc(gamecard.activationTime);
-        let endInt = itsNow;
-        let realDuration = endInt.diff(startInt, 'milliseconds', true);
-        if (gamecard.pauseTime && gamecard.resumeTime)
-            realDuration = moment.utc(gamecard.pauseTime).diff(startInt, 'milliseconds', true) + endInt.diff(moment.utc(gamecard.resumeTime), 'milliseconds', true);
-        gamecard.pointsAwarded = gamecard.startPoints + Math.round((gamecard.endPoints - gamecard.startPoints) * (realDuration / gamecard.duration));
+        try {
+            let startInt = moment.utc(gamecard.activationTime);
+            let endInt = itsNow;
+            let realDuration = endInt.diff(startInt, 'milliseconds', true);
+            if (gamecard.pauseTime && gamecard.resumeTime)
+                realDuration = moment.utc(gamecard.pauseTime).diff(startInt, 'milliseconds', true) + endInt.diff(moment.utc(gamecard.resumeTime), 'milliseconds', true);
+            gamecard.pointsAwarded = gamecard.startPoints + Math.round((gamecard.endPoints - gamecard.startPoints) * (realDuration / gamecard.duration));
+        }
+        catch (err) {
+            if (simulationCheck && gamecard.pointsAwardedInitially)
+                gamecard.pointsAwarded = gamecard.pointsAwardedInitially;
+            log.error(err.stack, gamecard.toObject());
+        }
     }
     else
         gamecard.pointsAwarded = gamecard.startPoints;
@@ -2732,6 +2791,25 @@ gamecards.ReEvaluateAll = function (matchId, outerCallback) {
                 if (!gamecard.terminationConditions && definition.terminationConditions)
                     gamecard.terminationConditions = definition.terminationConditions;
             }
+
+            // Correct / Rectify activationTime in those PresetInstant cards that is null
+            if (gamecard.cardType == 'PresetInstant' && gamecard.minute != 'undefined' && gamecard.minute != null && match.time > gamecard.minute) {
+                if (gamecard.minute >= 45 && match.timeline.length >= 4 && match.timeline[3] && match.timeline[3].sport_start_time && match.timeline[3].start && gamecard.minute >= match.timeline[3].sport_start_time) {
+                    var newActivationTime = moment.utc(match.timeline[3].start).add(gamecard.minute - match.timeline[3].sport_start_time, 'm').toDate();
+                    if (!gamecard.activationTime || (Math.abs(moment.utc(gamecard.activationTime).diff(moment.utc(newActivationTime), 'seconds')) > 60 && !gamecard.resumeTime)) {
+                        gamecard.activationTime = moment.utc(match.timeline[3].start).add(gamecard.minute - match.timeline[3].sport_start_time, 'm').toDate();
+                        gamecard.terminationTime = moment.utc(gamecard.activationTime).add(gamecard.duration || 0, 'ms').toDate();
+                    }
+                }
+                else if (gamecard.minute < 45 && match.timeline.length >= 2 && match.timeline[1] && match.timeline[1].sport_start_time >= 0 && match.timeline[1].start && gamecard.minute >= match.timeline[1].sport_start_time) {
+                    var newActivationTime = moment.utc(match.timeline[1].start).add(gamecard.minute, 'm').toDate();
+                    if (!gamecard.activationTime || Math.abs(moment.utc(gamecard.activationTime).diff(moment.utc(newActivationTime), 'seconds')) > 60) {
+                        gamecard.activationTime = moment.utc(match.timeline[1].start).add(gamecard.minute, 'm').toDate();
+                        gamecard.terminationTime = moment.utc(gamecard.activationTime).add(gamecard.duration || 0, 'ms').toDate();
+                    }
+                }
+            }
+
         });
 
         let matchEvents = [];
@@ -2880,8 +2958,8 @@ gamecards.ReEvaluateAll = function (matchId, outerCallback) {
         let reevaluatedTotalCardsWon = _.sumBy(userGamecards, function (gamecard) {
             return gamecard.pointsAwarded && gamecard.pointsAwarded > 0 ? 1 : 0;
         });
-        log.info('total Points Awarded initially: ' + totalPointsAwarded + ' and after re-evaluation: ' + reevaluatedTotalPointsAwarded);
-        log.info('total Cards Won initially: ' + totalCardsWon + ' and after re-evaluation: ' + reevaluatedTotalCardsWon);
+        log.info('==== Total Points Awarded initially: ' + totalPointsAwarded + ' and after re-evaluation: ' + reevaluatedTotalPointsAwarded);
+        log.info('==== Total Cards Won initially: ' + totalCardsWon + ' and after re-evaluation: ' + reevaluatedTotalCardsWon);
 
         const reevaluatedGamecardsPerUser = _.groupBy(userGamecards, (g) => { return g.userid; });
         const reevaluatedTotalPointsAwardedPerUser = _.mapValues(reevaluatedGamecardsPerUser, function (gamecards) {
@@ -2893,9 +2971,15 @@ gamecards.ReEvaluateAll = function (matchId, outerCallback) {
 
 
         const gamecardsDiffed = _.filter(userGamecards, function (gamecard) {
-            return (gamecard.pointsAwarded ? gamecard.pointsAwarded : 0) != gamecard.pointsAwardedInitially;
+            return (!gamecard.pointsAwardedInitially && gamecard.pointsAwarded)
+                || (gamecard.pointsAwardedInitially && !gamecard.pointsAwarded)
+                || (Math.abs((gamecard.pointsAwardedInitially || 0) - (gamecard.pointsAwarded || 0)) > 1);
+            //return (gamecard.pointsAwarded ? gamecard.pointsAwarded : 0) != gamecard.pointsAwardedInitially;
         });
-        log.info('Gamecards diffed:   ' + gamecardsDiffed);
+        log.info('==== Total Gamecards diffed:   ' + gamecardsDiffed.length);
+        _.forEach(gamecardsDiffed, (card) => {
+            log.info(`${card.id}\t${card.cardType}\t\t${card.pointsAwarded}\t\t${card.pointsAwardedInitially}`);
+        });
         const userIdsDiffed = _.uniq(_.map(gamecardsDiffed, 'userid')); 
         const userGamecardsDiffedPerUser = _.pick(reevaluatedGamecardsPerUser, userIdsDiffed);
         const reevaluatedScorePerUser = _.mapValues(userGamecardsDiffedPerUser, function (gamecards) {

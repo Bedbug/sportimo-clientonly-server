@@ -850,8 +850,13 @@ apiRoutes.put('/v1/users/:id', function (req, res) {
     else {
 
         // Sanitize changed username
-        if (req.body.username)
-            req.body.username = req.body.username.replace(/[&\/\\#,+()$~ %.'":*?<>{}]/g, '_');
+        if (req.body.username) {
+            // If the username is empty, ignore username changes in req.body
+            if (req.body.username == '')
+                delete req.body.username;
+            else 
+                req.body.username = req.body.username.replace(/[&\/\\#,+()$~ %.'":*?<>{}]/g, '_');
+        }
         
         User.findOneAndUpdate({
             _id: req.params.id,
@@ -861,7 +866,7 @@ apiRoutes.put('/v1/users/:id', function (req, res) {
                 logger.log('error', err.stack, req.body);
                 res.status(500).send(err);
             } else {
-                if (req.body.username && req.body.username != originalUser.username) {
+                if (req.body && originalUser && req.body.username && req.body.username != originalUser.username) {
                     // update Scores collection with new username
                     Scores.update({ user_id: originalUser.id, user_name: originalUser.username }, { user_name: req.body.username }, { multi: true }, function (err) {
                         if (err) {
@@ -1383,7 +1388,7 @@ apiRoutes.post('/v1/users/single_signon/linkcode', jwtMiddle, (req, res) => {
 
 // change username
 apiRoutes.put('/v1/users/update/username', jwtMiddle, (req, res) => {
-    if (!req.body.username)
+    if (!req.body.username || req.body.username == '')
         return res.json({ success: false, message: 'Bad request, username is missing' });
 
     if (req.body.username == req.decode.username)
@@ -1398,7 +1403,14 @@ apiRoutes.put('/v1/users/update/username', jwtMiddle, (req, res) => {
         }
 
         if (!user) {
-            User.findOneAndUpdate({ _id: req.decode._id, deletedAt: null }, { $set: { username: req.body.username } }, (err, result) => {
+            async.waterfall([
+                (cbk) => {
+                    return User.findOneAndUpdate({ _id: req.decode._id, deletedAt: null }, { $set: { username: sanitizedUsername } }, cbk);
+                },
+                (userBeforeUpdate, cbk) => {
+                    return Scores.update({ user_name: userBeforeUpdate.username }, { user_name: sanitizedUsername }, { multi: true }, cbk);
+                }
+            ], (err, parallelResult) => {
                 if (err) {
                     logger.log('error', err.stack, req.body);
                     return res.json({ success: false });

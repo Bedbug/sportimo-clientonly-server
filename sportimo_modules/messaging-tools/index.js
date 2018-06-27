@@ -173,6 +173,9 @@ MessagingTools.sendPushToUsers = function (userids, message, data, type, callbac
                    } );
 
                 console.log("[UserMessaging] Send push to %s users.", pushTokens.length+". Failed in "+  failed);
+                if (body.response && body.response.UnknownDevices) {
+                    console.log(body.response.UnknownDevices);
+                }
                 if (callback) {
                     return callback("[UserMessaging] Send push to " + pushTokens.length + " users.");
                 }

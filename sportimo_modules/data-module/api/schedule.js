@@ -26,7 +26,8 @@ api.items = function (req, res) {
         .populate('competition', 'name logo graphics');
 
     q.select('home_team home_score away_team away_score competition time state start completed');
-
+    q.sort({ start: -1 });
+    q.limit(50);
     q.exec(function (err, items) {
         // items = _.remove(items, function (o) {
         //     return o.home_team == null || o.away_team == null;
