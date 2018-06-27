@@ -6,7 +6,6 @@ var express = require('express'),
     competition = mongoose.models.competitions,
     settings = mongoose.models.settings,
     defaultMatch = require('../config/empty-match'),
-    MatchModeration = require('../../match-moderation'),
     logger = require('winston'),
     api = {};
 
@@ -94,79 +93,6 @@ api.itemsSearch = function (req, res) {
 
 };
 
-// POST
-api.additem = function (req, res) {
-
-    if (req.body == 'undefined') {
-        return res.status(400).json('No item Provided. Please provide valid team data.');
-    }
-
-    if (req.body.competition == null)
-        return res.status(400).json('No competition Provided. Please provide valid competition ID.');
-
-    req.body.timeline = [];
-    req.body.timeline.push({
-        timed: false,
-        text: { en: "Pre Game", ar: "ماقبل المباراة" }
-    })
-
-    competition.findById(req.body.competition).then(function (competition) {
-
-        // console.log(competition);
-        // var defaultData = new defaultMatch();
-        var mergedData = _.merge(_.cloneDeep(defaultMatch), req.body);
-        var newItem = new item(mergedData);
-        newItem.visiblein = competition.visiblein;
-
-        settings.find({}, function (err, result) {
-            if (err) {
-                logger.log('error', err.stack, req.body);
-                return res.status(500).json(err);
-            }
-            // if (result[0])           
-                newItem.settings = {
-                    "gameCards": {
-                        "instant": 15,
-                        "overall": 15,
-                        "specials": 4,
-                        "totalcards": 15
-                    },
-                    "matchRules": {
-                        "freeUserPlaySegments": [
-                            0,
-                            1,
-                            2
-                        ],
-                        "freeUserHasPlayTimeWindow": false,
-                        "freeUserPregameTimeWindow": 20,
-                        "freeUserLiveTimeWindow": 20,
-                        "freeUserAdsToGetCards": false,
-                        "freeUserCardsCap": false,
-                        "freeUserCardsLimit": 5
-                    },
-                    "hashtag": "#sportimo",
-                    "destroyOnDelete": true,
-                    "sendPushes": true
-                }//result[0].clientdefaults;
-
-            return newItem.save(function (err, data) {
-                if (err) {                   
-                    logger.log('error', err.stack, req.body);
-                    return res.status(500).json(err);
-                } else {
-                    MatchModeration.LoadMatchFromDB(data._id, function () {
-                        return res.status(200).json(data);
-                    });
-                }
-            });
-        })
-
-
-    })
-
-
-
-};
 
 api.updateVisibility = function (req, res) {
 
@@ -208,71 +134,6 @@ api.item = function (req, res) {
     });
 };
 
-// PUT
-api.edititem = function (req, res) {
-    var id = req.params.id;
-    var updateData = req.body;
-    item.findById(id, function (err, returnedItem) {
-
-        if (updateData === undefined || returnedItem === undefined) {
-            return res.status(400).json("Error: Data is not correct.");
-        }
-
-        returnedItem.photo = updateData.photo;
-        returnedItem.tags = updateData.tags;
-        returnedItem.publishDate = updateData.publishDate;
-        returnedItem.type = updateData.type;
-        returnedItem.publication = updateData.publication;
-        // art.markModified('tags');
-
-        return returnedItem.save(function (err, data) {
-            if (!err) {
-                return res.status(200).json(data);
-            } else {
-                logger.log('error', err.stack, req.body);
-                return res.status(500).json(err);
-            }
-        }); //eo team.save
-    });// eo team.find
-};
-
-api.edititemsettings = function (req, res) {
-    var id = req.params.id;
-    var updateData = req.body;
-    item.findById(id, function (err, returnedItem) {
-
-        if (updateData === undefined || returnedItem === undefined) {
-            return res.status(400).json("Error: Data is not correct.");
-        }
-
-        returnedItem.settings = updateData;
-
-        return returnedItem.save(function (err, data) {
-            if (!err) {
-                return res.status(200).json(data);
-            } else {
-                logger.log('error', err.stack, req.body);
-                return res.status(500).json(err);
-            }
-        }); //eo team.save
-    });// eo team.find
-
-
-};
-
-
-// DELETE
-api.deleteitem = function (req, res) {
-    var id = req.params.id;
-    item.find({ _id: id }).remove(function (err, data) {
-        if (!err) {
-            return res.status(200).json(data);
-        } else {
-            logger.log('error', err.stack, req.body);
-            return res.status(500).json(err);
-        }
-    });
-};
 
 
 
@@ -287,16 +148,9 @@ router.route('/v1/data/schedule/country/:country')
 router.route('/v1/data/schedule/')
     .get(api.itemsSearch);
 
-router.post('/v1/data/schedule', api.additem);
-
 router.post('/v1/data/schedule/visibility', api.updateVisibility);
 
-router.route('/v1/data/schedule/:id/settings')
-    .put(api.edititemsettings);
-
 router.route('/v1/data/schedule/:id')
-    .get(api.item)
-    .put(api.edititem)
-    .delete(api.deleteitem);
+    .get(api.item);
 
 module.exports = router;
