@@ -193,7 +193,7 @@ module.exports = function (gamecardModule) {
             if (validationError)
             {
                 var itsNow = moment.utc();
-                return res.status(403).json({ error: validationError.message, errorCode: validationError.code, responseTimeUtc: itsNow });
+                return res.status(200).json({ error: validationError.message, errorCode: validationError.code, responseTimeUtc: itsNow });
             }
             log.debug(data);
             return res.status(200).json({ error: null, errorCode: null, userGamecard: data });
