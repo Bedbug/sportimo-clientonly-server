@@ -95,10 +95,7 @@ api.timedpools = function (req, res) {
                 var now = moment.utc();
 
                 // Disabling Weekly leaderboard
-                weekpool.status ="Closed"
-                pools = _.sortBy(pools, (p) => {
-                    return (now >= p.starts && now <= p.ends) ? 1 : 0;
-                });
+                weekpool.status = "Closed";
                 res.status(200).send(pools);
                 // Week pool disabled. To enable again uncomment bellow section
                 // if (now >= poolstart && now <= poolends)
