@@ -115,7 +115,7 @@ api.timedpools = function (req, res) {
             } else {
                 var now = new Date();
                 pools = _.sortBy(pools, (p) => {
-                    return (now >= p.starts && now <= p.ends) ? 1 : 0;
+                    return (p.starts && p.ends && now >= p.starts && now <= p.ends) ? 1 : 0;
                 });
                 res.status(200).send(pools);
             }
