@@ -73,6 +73,8 @@ api.timedpools = function (req, res) {
     var q = Pool.find(querry);
 
     q.exec(function (err, pools) {
+        var now = new Date();
+
         if (err) res.status(500).send(err);
         else {
             var uniqueArray = ['Season', 'Week'];
@@ -96,6 +98,9 @@ api.timedpools = function (req, res) {
 
                 // Disabling Weekly leaderboard
                 weekpool.status = "Closed";
+                pools = _.sortBy(pools, (p) => {
+                    return (p.starts && p.ends && now >= p.starts && now <= p.ends) ? 0 : 1;
+                });
                 res.status(200).send(pools);
                 // Week pool disabled. To enable again uncomment bellow section
                 // if (now >= poolstart && now <= poolends)
@@ -113,9 +118,8 @@ api.timedpools = function (req, res) {
 
                 // }
             } else {
-                var now = new Date();
                 pools = _.sortBy(pools, (p) => {
-                    return (p.starts && p.ends && now >= p.starts && now <= p.ends) ? 1 : 0;
+                    return (p.starts && p.ends && now >= p.starts && now <= p.ends) ? 0 : 1;
                 });
                 res.status(200).send(pools);
             }
