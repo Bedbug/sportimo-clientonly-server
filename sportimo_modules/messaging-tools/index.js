@@ -3,23 +3,9 @@ var mongoose = require('mongoose'),
     CryptoJS = require("crypto-js"),
     nodemailer = require('nodemailer'),
     smtpTransport = require('nodemailer-smtp-transport'),
-    needle = require('needle'),
-    redis = require('redis'),
-    redisCreds = require.main.require('./config/redisConfig');
+    needle = require('needle')
 premessages = require("./config/pre-messages");
 
-var PublishChannel = null;
-// Heroku servers Redis though Environment variable
-PublishChannel = redis.createClient(process.env.REDIS_URL || "redis://h:pa4daaf32cd319fed3e9889211b048c2dabb1f723531c077e5bc2b8866d1a882e@ec2-34-247-112-146.eu-west-1.compute.amazonaws.com:6799");
-// PublishChannel.auth(redisCreds.secret, function (err) {
-//     if (err) {
-//         console.log(err);
-//     }
-// });
-PublishChannel.on("error", function (err) {
-    console.error("{''Error'': ''" + err + "''}");
-    console.error(err.stack);
-});
 
 
 MessagingTools = {};
@@ -279,7 +265,7 @@ MessagingTools.sendPushToAdmins = function (message, callback) {
     });
 };
 
-
+const PublishChannel = null;
 MessagingTools.sendSocketMessageToUsers = function (ids, message) {
     if (PublishChannel)
         PublishChannel.publish("socketServers", JSON.stringify({
