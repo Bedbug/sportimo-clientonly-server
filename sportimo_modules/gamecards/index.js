@@ -590,7 +590,7 @@ gamecards.createDefinitionFromTemplate = function (template, match) {
         console.log(newDefinition.creationTime + " | " + newDefinition.title.en + " Match Card Created");
     });
 };
-
+*/
 
 // Select all gamecardDefinitions, and filter for those that have remainingUserInstances in their userGamecards counterparts null or > 0
 gamecards.getUserInstances = function (matchId, userId, cbk) {
@@ -711,7 +711,7 @@ gamecards.getUserInstances = function (matchId, userId, cbk) {
         return cbk(null, userGamecardDefinitions);
     });
 };
-*/
+
 
 
 /* 
