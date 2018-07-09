@@ -5,27 +5,9 @@ var mongoose = require('mongoose'),
     Scores = mongoose.models.scores,
     Users = mongoose.models.users,
     _ = require('lodash'),
-    redis = require('redis'),
     api = {},
     l = require('../config/lib');
 
-// Initialize and connect to the Redis datastore
-// var redisCreds = {
-//     url: 'clingfish.redistogo.com',
-//     port: 9307,
-//     secret: '075bc004e0e54a4a738c081bf92bc61d',
-//     channel: "socketServers"
-// };
-
-var redisCreds = require('../../../config/redisConfig');
-
-var Pub;
-Pub = redis.createClient(process.env.REDIS_URL || "redis://h:pa4daaf32cd319fed3e9889211b048c2dabb1f723531c077e5bc2b8866d1a882e@ec2-34-247-112-146.eu-west-1.compute.amazonaws.com:6799");
-// Pub.auth(redisCreds.secret, function (err) {
-//     if (err) {
-//         console.log("[Questions_Module]: "+err);
-//     }
-// });
 
 /*
 ========= [ CORE METHODS ] =========
@@ -62,6 +44,7 @@ api.getQuestion = function (id, cb) {
     });
 };
 
+/*
 // POST
 api.addQuestion = function (question, cb) {
 
@@ -109,6 +92,7 @@ var informClientsOfAnwswers = function (id) {
             ));
     });
 }
+*/
 
 api.userAnswerQuestion = function (answer, cb) {
 
@@ -135,7 +119,7 @@ api.userAnswerQuestion = function (answer, cb) {
 };
 
 
-
+/*
 // PUT
 api.editQuestion = function (id, updateData, cb) {
     Question.findById(id, function (err, question) {
@@ -232,7 +216,7 @@ api.deleteQuestion = function (id, cb) {
         });
     });
 };
-
+*/
 
 
 /*

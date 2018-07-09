@@ -147,23 +147,23 @@ api.deleteAllQuestions = function (req, res) {
 */
 
 
-router.post('/v1/questions',api.addquestion);
+//router.post('/v1/questions',api.addquestion);
 
 router.route('/v1/questions/:id')
-.get(api.question)
-.put(api.editQuestion)
-.delete(api.deleteQuestion);
+    .get(api.question);
+//.put(api.editQuestion)
+//.delete(api.deleteQuestion);
 
 
 router.route('/v1/questions')
-.get(api.questions)
-.delete(api.deleteAllQuestions);
+    .get(api.questions);
+//.delete(api.deleteAllQuestions);
 
 router.get('/v1/questions/match/:matchid', api.getAllQuestionsByMatch);
 
 router.post('/v1/questions/:qid/user', api.userAnswerQuestion);
 
-router.post('/v1/questions/:qid/moderator', api.moderatorAnswerQuestion);
+//router.post('/v1/questions/:qid/moderator', api.moderatorAnswerQuestion);
 
 router.get('/questions/test',function(res,res){
 	return question.test(function (err, data) {
