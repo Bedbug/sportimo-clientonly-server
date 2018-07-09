@@ -38,7 +38,6 @@
 var express = require("express"),
     http = require('http'),
     bodyParser = require('body-parser'),
-    redis = require('redis'),
     mongoose = require('mongoose'),
     winston = require('winston'),
     settings = require('./models/settings'),
