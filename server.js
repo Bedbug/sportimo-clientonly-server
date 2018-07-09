@@ -106,11 +106,6 @@ if (process.env.NODE_ENV == "production") {
 }
 
 
-// if (process.env.NODE_ENV == "development") {
-//     morgan.token("date-time", function (req, res) { return (new Date()).toISOString() });
-//     app.use(morgan(':date-time :method :url :status :response-time ms - :res[content-length]'));
-//     app.use(morgan('dev'));
-// }
 app.get("/crossdomain.xml", onCrossDomainHandler);
 
 function onCrossDomainHandler(req, res) {
@@ -127,37 +122,10 @@ function onCrossDomainHandler(req, res) {
 }
 
 
-var redisCreds = require('./config/redisConfig');
 var mongoCreds = require('./config/mongoConfig');
-
-var PublishChannel = null;
-var SubscribeChannel = null;
-
-try {
-    PublishChannel = redis.createClient(process.env.REDIS_URL || "redis://h:pa4daaf32cd319fed3e9889211b048c2dabb1f723531c077e5bc2b8866d1a882e@ec2-34-247-112-146.eu-west-1.compute.amazonaws.com:6799");
-    SubscribeChannel = redis.createClient(process.env.REDIS_URL || "redis://h:pa4daaf32cd319fed3e9889211b048c2dabb1f723531c077e5bc2b8866d1a882e@ec2-34-247-112-146.eu-west-1.compute.amazonaws.com:6799");
-
-    PublishChannel.on("error", function (err) {
-        console.error(err);
-        console.error(err.stack);
-    });
-
-    SubscribeChannel.on("error", function (err) {
-        console.error(err);
-        console.error(err.stack);
-    });
-}
-catch (err) {
-    console.log(err);
-}
-
-app.PublishChannel = PublishChannel;
-
 
 if (!process.env.NODE_ENV)
     process.env.NODE_ENV = "development";
-
-// process.env.NODE_ENV = "production";
 
 var airbrake;
 if (process.env.NODE_ENV == "development") {
@@ -209,7 +177,7 @@ mongoose.connect(mongoConnection, function (err, res) {
         early_access_module = require('./sportimo_modules/early-access');
 
         gamecards = require('./sportimo_modules/gamecards');
-        gamecards.connect(mongoose, PublishChannel, SubscribeChannel);
+        gamecards.connect(mongoose);
     }
 });
 
@@ -233,8 +201,6 @@ app.use(function (req, res, next) {
 
 app.use(function (req, res, next) {
     req.mongoose = mongoose.connection;
-    req.redisPub = PublishChannel;
-    req.redisSub = SubscribeChannel;
     next();
 });
 

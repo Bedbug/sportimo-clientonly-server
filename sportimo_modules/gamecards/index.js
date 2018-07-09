@@ -71,8 +71,8 @@ var gamecards = {};
 var db = null;
 
 /*The redis pub/sub chanel for publishing*/
-var redisPublish = null;
-var redisSubscribe = null;
+//var redisPublish = null;
+//var redisSubscribe = null;
 
 /*The tick handler*/
 var tickSchedule = null;
@@ -80,103 +80,50 @@ var tickSchedule = null;
 
 /************************************
  * Perform initialization functions */
-gamecards.connect = function (dbconnection, redisPublishChannel, redisSubscribeChannel) {
+gamecards.connect = function (dbconnection) {
     if (!db) {
         db = dbconnection;
         UserGamecard = db.models.userGamecards;
     }
 
-    //if (!redisPublish)
     // Enforce re-registering the redisPublish object, to ensure proper initialization
-    redisPublish = redisPublishChannel;
+    //redisPublish = redisPublishChannel;
 
-    if (!redisSubscribe) {
-        redisSubscribe = redisSubscribeChannel;
+    //if (!redisSubscribe) {
+    //    redisSubscribe = redisSubscribeChannel;
 
-        if (redisSubscribe) {
-            redisSubscribe.on("error", function (err) {
-                log.error("{''Error'': ''" + err + "''}");
-            });
+    //    if (redisSubscribe) {
+    //        redisSubscribe.on("error", function (err) {
+    //            log.error("{''Error'': ''" + err + "''}");
+    //        });
 
-            redisSubscribe.on("subscribe", function (channel, count) {
-                log.info("[Gamecards] Subscribed to Sportimo Events PUB/SUB channel");
-            });
+    //        redisSubscribe.on("subscribe", function (channel, count) {
+    //            log.info("[Gamecards] Subscribed to Sportimo Events PUB/SUB channel");
+    //        });
 
-            redisSubscribe.on("unsubscribe", function (channel, count) {
-                log.info("[Gamecards] Unsubscribed from Sportimo Events PUB/SUB channel");
-            });
+    //        redisSubscribe.on("unsubscribe", function (channel, count) {
+    //            log.info("[Gamecards] Unsubscribed from Sportimo Events PUB/SUB channel");
+    //        });
 
-            redisSubscribe.on("end", function () {
-                log.error("[Gamecards] Connection ended");
-            });
+    //        redisSubscribe.on("end", function () {
+    //            log.error("[Gamecards] Connection ended");
+    //        });
 
-            redisSubscribe.subscribe("socketServers");
+    //        redisSubscribe.subscribe("socketServers");
 
-            redisSubscribe.on("message", function (channel, message) {
-                let msg = JSON.parse(message);
-                if (msg.payload && msg.payload.type && (msg.payload.type == 'socket_stats' || msg.payload.type == 'Stats_changed')) {
-                    // log.info("[Redis] : Event has come through the channel.");
-                    // log.info("[Redis] :" + JSON.stringify(msg.payload));
+    //        redisSubscribe.on("message", function (channel, message) {
+    //            let msg = JSON.parse(message);
+    //            if (msg.payload && msg.payload.type && (msg.payload.type == 'socket_stats' || msg.payload.type == 'Stats_changed')) {
+    //                // log.info("[Redis] : Event has come through the channel.");
+    //                // log.info("[Redis] :" + JSON.stringify(msg.payload));
 
-                }
-            });
-        }
-    }
+    //            }
+    //        });
+    //    }
+    //}
 };
 
 
-/*
-gamecards.init = function (dbconnection, redisPublishChannel, redisSubscribeChannel, match) {
-    gamecards.connect(dbconnection, redisPublishChannel, redisSubscribeChannel);
-
-    if (db == null || UserGamecard == null) {
-        log.error("No active database connection found. Aborting.");
-        return new Error('No active database connection found. Aborting.');
-    }
-
-    if (!tickSchedule)
-        tickSchedule = setInterval(gamecards.Tick, 3000);
-
-    // Check if match has gamecardDefinitions written in mongo from the gamecardTemplates and if their appearanceConditions are met, if not, create them.
-    async.waterfall([
-        function (callback) {
-            db.models.gamecardTemplates.find({ isActive: true }, function (error, templates) {
-                if (error)
-                    return callback(error);
-                callback(null, templates);
-            });
-        },
-        function (templates, callback) {
-            db.models.gamecardDefinitions.find({ matchid: match._id.toString() }, function (error, definitions) {
-
-                if (error)
-                    return callback(error);
-
-                if (templates == null || templates.length == 0)
-                    return callback(null);
-                //callback(null, definitions);
-                let usedTemplateIds = [];
-                _.forEach(definitions, function (definition) {
-                    if (_.indexOf(usedTemplateIds, definition.gamecardTemplateId))
-                        usedTemplateIds.push(definition.gamecardTemplateId);
-                });
-
-                // Now instantiate all not found templates into new gamecardDefinitions
-                _.forEach(templates, function (template) {
-                    if (_.indexOf(usedTemplateIds, template.id) == -1) {
-                        gamecards.createDefinitionFromTemplate(template, match);
-                    }
-                });
-            });
-        }
-    ], function (error, result) {
-        if (error)
-            log.error('Error while initializing gamecards module: ' + error.message);
-    });
-
-
-};
-*/
 
 
 /************************************
@@ -323,6 +270,8 @@ gamecards.deleteMatchDefinition = function (gamecardId, callback) {
     });
 };
 
+
+/*
 // Aris: Added a new method to post new match definitions in order to proceed
 gamecards.addMatchDefinition = function (gamecard, callback) {
 
@@ -762,6 +711,8 @@ gamecards.getUserInstances = function (matchId, userId, cbk) {
         return cbk(null, userGamecardDefinitions);
     });
 };
+*/
+
 
 /* 
 * Each time a gamecard is played by a user, it has to be validated before being added to the userWildcards collection in Mongo
@@ -1369,6 +1320,8 @@ gamecards.GetMatchMinute = function (state, stateMinute) {
     }
 };
 
+
+/*
 // Manage gamecards in time, activate the ones pending activation, terminate the ones pending termination
 gamecards.Tick = function () {
     // Update all wildcards pending to be activated
@@ -2294,7 +2247,6 @@ gamecards.GamecardsAppearanceHandle = function (event, match) {
 };
 
 
-
 // Resolve an incoming segment change. The result may be that some cards may be paused (status = 3), or some cards may be resumed (status = 1).
 // segmentIndex is the recently modified match state
 gamecards.ResolveSegment = function (matchId, segmentIndex) {
@@ -2361,7 +2313,6 @@ gamecards.ResolveSegment = function (matchId, segmentIndex) {
 
 
 };
-
 
 // Resolve an incoming match event and see if some matching wildcards win
 gamecards.ResolveEvent = function (matchEvent) {
@@ -3157,7 +3108,7 @@ gamecards.TerminateMatch = function (match, callback) {
     });
 
 };
-
+*/
 
 
 /************************************

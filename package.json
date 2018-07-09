@@ -33,7 +33,6 @@
     "nodemailer": "^4.4.1",
     "nodemailer-smtp-transport": "^2.7.4",
     "object-assign": "^4.0.1",
-    "redis": "",
     "request": "latest",
     "shortid": "^2.2.6",
     "underscore": "^1.8.3",
