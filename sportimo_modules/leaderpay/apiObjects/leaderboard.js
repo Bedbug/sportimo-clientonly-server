@@ -25,26 +25,26 @@ api.getLeaderboard = function (conditions, skip, limit, cb) {
     var bestscores = conditions.bestscores ? conditions.bestscores : 50;
 
     return q.exec(function (err, leaderboard) {
-        var result =
-            _.chain(leaderboard)
-                .orderBy(['user_name', 'score'], ['desc', 'desc'])
-                .groupBy("user_id")
-                .map(function (value, key) {
-                    var scores = _.chain(value).take(bestscores).map("score").value();
-                    var score = _.sum(scores);
-                    var leadItem = {
-                        "_id": value[0].user_id,
-                        "score": score,
-                        "scores": scores,
-                        "name": value[0].user_name,
-                        "level": value[0].level,
-                        "pic": value[0].pic,
-                        "country": value[0].country
-                    }
-                    return leadItem;
-                })
-                .orderBy(["score"], ["desc"])
-                .value();
+        // var result =
+        //     _.chain(leaderboard)
+        //         .orderBy(['user_name', 'score'], ['desc', 'desc'])
+        //         .groupBy("user_id")
+        //         .map(function (value, key) {
+        //             var scores = _.chain(value).take(bestscores).map("score").value();
+        //             var score = _.sum(scores);
+        //             var leadItem = {
+        //                 "_id": value[0].user_id,
+        //                 "score": score,
+        //                 "scores": scores,
+        //                 "name": value[0].user_name,
+        //                 "level": value[0].level,
+        //                 "pic": value[0].pic,
+        //                 "country": value[0].country
+        //             }
+        //             return leadItem;
+        //         })
+        //         .orderBy(["score"], ["desc"])
+        //         .value();
 
         // for (var key in result)
         //     result[key].sort(function (a, b) { var x = a.DisplayName, y = b.DisplayName; return x === y ? 0 : x < y ? -1 : 1; });
