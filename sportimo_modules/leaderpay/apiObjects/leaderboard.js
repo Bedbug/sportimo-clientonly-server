@@ -28,7 +28,7 @@ api.getLeaderboard = function (conditions, skip, limit, cb) {
         var result =
             _.chain(leaderboard)
                 .orderBy(['user_name', 'score'], ['desc', 'desc'])
-                .groupBy("user_name")
+                .groupBy("user_id")
                 .map(function (value, key) {
                     var scores = _.chain(value).take(bestscores).map("score").value();
                     var score = _.sum(scores);
