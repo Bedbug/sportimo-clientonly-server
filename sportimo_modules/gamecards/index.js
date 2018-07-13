@@ -692,6 +692,13 @@ gamecards.getUserInstances = function (matchId, userId, cbk) {
                     definitionIdsToDrop.push(definition.id);
             });
         }
+        // If the match has passed its second half, disable all Overall cards
+        if (matchState > 3) {
+            _.forEach(definitions, function (definition) {
+                if (definition.cardType == 'Overall' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
+                    definitionIdsToDrop.push(definition.id);
+            });
+        }
         // If the match has started already and the last event in the timeline is a Penalty, drop all Goal definitions
         if (_.indexOf([1, 3, 5, 7], matchState) > -1 && match.timeline[0] && match.timeline[0].events.length > 0) {
             const lastEvent = _.last(match.timeline[0].events);
