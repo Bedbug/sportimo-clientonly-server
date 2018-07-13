@@ -25,7 +25,7 @@ var scoreSchema = new Schema(fields,
     });
 
 
-scoreSchema.index({ lastActive: -1 });
+//scoreSchema.index({ lastActive: -1 });
 scoreSchema.index({ user_id: 1, game_id: 1 });
 
 scoreSchema.statics.AddPoints = function (uid, room, points, m_date, cb) {
@@ -80,21 +80,29 @@ scoreSchema.statics.AddPoints = function (uid, room, points, m_date, cb) {
             if (!result.user_name) {
               
                 mongoose.model('users').findById(uid, function (err, user) {                                      
-                    var score = {
-                        pic: user.picture,
-                        user_name: user.username,                                                
-                        country: user.country                        
-                    };                    
-                    if (user.level)
-                        score.level = user.level;
-                                                                               
-                    if (user) {
-                        mongoose.model('scores').findOneAndUpdate({ game_id: room, user_id: uid },
-                            score,
-                            { upsert: true, safe: true, new: true },
-                            function (err, result) {                                                               
-                                console.log("Updated erroneus leaderboard entry for: " + uid);
-                            });
+                    if (err) {
+                        console.error(err.stack);
+                    }
+                    else if (!user) {
+                        console.error('Failed to locate user ' + uid + ' in order to update its score in room ' + room);
+                    }
+                    else {
+                        var score = {
+                            pic: user.picture,
+                            user_name: user.username,
+                            country: user.country
+                        };
+                        if (user.level)
+                            score.level = user.level;
+
+                        if (user) {
+                            mongoose.model('scores').findOneAndUpdate({ game_id: room, user_id: uid },
+                                score,
+                                { upsert: true, safe: true, new: true },
+                                function (err, result) {
+                                    console.log("Updated erroneus leaderboard entry for: " + uid);
+                                });
+                        }
                     }
                 });
             }
