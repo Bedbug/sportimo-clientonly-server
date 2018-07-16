@@ -57,8 +57,8 @@ var languageMapping = {
 var statscoreConfigDevelopment = {
     // if not supportedLanguages is set in the function parameter, then set it to a default value of 1 language supported: english.
     supportedLanguages: ["en"],
-    urlPrefix: "queue.softnetsport.com", // url prefix for the AMQP RabbitQueue service
-    urlApiPrefix: "https://api.softnetsport.com/v2/", // url prefix for the Http API endpoints
+    urlPrefix: "queue.statscore.com", // url prefix for the AMQP RabbitQueue service
+    urlApiPrefix: "https://api.statscore.com/v2/", // url prefix for the Http API endpoints
     queueName: "gu-group",
     userName: "gu-group",
     apiKey: "132",  // actually, this is the client_id
@@ -72,8 +72,8 @@ var statscoreConfigDevelopment = {
 var statscoreConfigProduction = {
     // if not supportedLanguages is set in the function parameter, then set it to a default value of 1 language supported: english.
     supportedLanguages: ["en"],
-    urlPrefix: "queue.softnetsport.com", // url prefix for the AMQP RabbitQueue service
-    urlApiPrefix: "https://api.softnetsport.com/v2/", // url prefix for the Http API endpoints
+    urlPrefix: "queue.statscore.com", // url prefix for the AMQP RabbitQueue service
+    urlApiPrefix: "https://api.statscore.com/v2/", // url prefix for the Http API endpoints
     queueName: "gu-group",
     userName: "gu-group",
     apiKey: "132",  // actually, this is the client_id

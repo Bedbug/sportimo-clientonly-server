@@ -55,7 +55,7 @@ var languageMapping = {
 var statsComConfigDevelopment = {
     // if not supportedLanguages is set in the function parameter, then set it to a default value of 1 language supported: english.
     supportedLanguages: ["en"],
-    urlPrefix: "https://api.softnetsport.com/v2/",
+    urlPrefix: "https://api.statscore.com/v2/",
     apiKey: "132",  // actually, this is the client_id
     apiSecret: "3iqAJvFlU0Y4bjB7MNkA4tu8tDMNI4QVYkh", 
     parserIdName: "Statscore"  // the name inside GameServer data parserId object, that maps to THIS parser's data ids. This is how we map stats.com objects to Sportimo gameServer objects.
@@ -65,7 +65,7 @@ var statsComConfigDevelopment = {
 var statsComConfigProduction = {
     // if not supportedLanguages is set in the function parameter, then set it to a default value of 1 language supported: english.
     supportedLanguages: ["en", "ar", "ru"],
-    urlPrefix: "https://api.softnetsport.com/v2/",
+    urlPrefix: "https://api.statscore.com/v2/",
     apiKey: "132",  // actually, this is the client_id
     apiSecret: "3iqAJvFlU0Y4bjB7MNkA4tu8tDMNI4QVYkh", 
     parserIdName: "Statscore"  // the name inside GameServer data parserId object, that maps to THIS parser's data ids. This is how we map stats.com objects to Sportimo gameServer objects.
