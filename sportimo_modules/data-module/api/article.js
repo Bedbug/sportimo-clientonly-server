@@ -9,12 +9,12 @@ var express = require('express'),
 
 
 // ALL
-api.articlesSearch = function(req, res) {
+api.articlesSearch = function (req, res) {
     var skip = null, limit = null;
     //  publishDate: { $gt: req.body.minDate, $lt: req.body.maxDate }, type: req.body.type, tags: { "$regex": req.body.tags, "$options": "i" }
     var queries = {};
 
-    if ((req.body.minDate != undefined || req.body.maxDate != undefined) && !req.body.related){
+    if ((req.body.minDate != undefined || req.body.maxDate != undefined) && !req.body.related) {
         queries.publishDate = {};
         if (req.body.minDate == req.body.maxDate) {
             queries.publishDate.$eq = req.body.minDate;
@@ -40,7 +40,8 @@ api.articlesSearch = function(req, res) {
     if (req.body.limit != undefined)
         q.limit(req.body.limit);
 
-    q.exec(function(err, articles) {
+    q.sort({ publishDate: -1 });
+    q.exec(function (err, articles) {
 
         return res.send(articles);
     });
@@ -48,7 +49,7 @@ api.articlesSearch = function(req, res) {
 };
 
 // POST
-api.addarticle = function(req, res) {
+api.addarticle = function (req, res) {
 
     if (req.body == 'undefined') {
         return res.status(400).json('No Article Provided. Please provide valid team data.');
@@ -56,7 +57,7 @@ api.addarticle = function(req, res) {
 
     var newItem = new article(req.body);
 
-    return newItem.save(function(err, data) {
+    return newItem.save(function (err, data) {
         if (!err) {
             return res.status(200).json(data);
         } else {
@@ -68,16 +69,16 @@ api.addarticle = function(req, res) {
 };
 
 // GET
-api.article = function(req, res) {
+api.article = function (req, res) {
     var id = req.params.id;
 
 };
 
 // PUT
-api.editArticle = function(req, res) {
+api.editArticle = function (req, res) {
     var id = req.params.id;
     var updateData = req.body;
-    article.findById(id, function(err, art) {
+    article.findById(id, function (err, art) {
 
         if (updateData === undefined || art === undefined) {
             return res.status(400).json("Error: Data is not correct.");
@@ -90,7 +91,7 @@ api.editArticle = function(req, res) {
         art.publication = updateData.publication;
         // art.markModified('tags');
 
-        return art.save(function(err, data) {
+        return art.save(function (err, data) {
             if (!err) {
                 return res.status(200).json(data);
             } else {
@@ -104,9 +105,9 @@ api.editArticle = function(req, res) {
 };
 
 // DELETE
-api.deleteArticle = function(req, res) {
+api.deleteArticle = function (req, res) {
     var id = req.params.id;
-     article.findByIdAndRemove(id, function (err, result) {
+    article.findByIdAndRemove(id, function (err, result) {
         if (!err) {
             return res.status(200).json(result);
         } else {
@@ -120,9 +121,9 @@ api.deleteArticle = function(req, res) {
 api.renderArticle = function (req, res) {
     var id = req.params.id;
     var lang = req.params.language || 'en';
-    
 
-   article.findById(id, function (err, data) {
+
+    article.findById(id, function (err, data) {
         if (err) {
             res.status(404).json(err);
         } else {
@@ -134,11 +135,11 @@ api.renderArticle = function (req, res) {
                 datat.description = "Article not found."
             } else {
 
-             if(!data.publication.title[lang])
-                lang = 'en';
+                if (!data.publication.title[lang])
+                    lang = 'en';
             }
             var renderData = data.toObject();
-            renderData.language = lang;           
+            renderData.language = lang;
             renderData.publishDate = moment(data.publishDate).format('MM-DD-YYYY, HH:mm')
             res.status(200).render('article', renderData);
 
@@ -163,7 +164,7 @@ router.route('/v1/data/articles/:id')
 
 router.route('/v1/data/articles/:id/render/:language')
     .get(api.renderArticle);
-    router.route('/v1/data/articles/:id/render/')
+router.route('/v1/data/articles/:id/render/')
     .get(api.renderArticle);
 
 module.exports = router;
