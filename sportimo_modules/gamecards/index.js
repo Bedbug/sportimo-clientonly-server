@@ -600,6 +600,7 @@ gamecards.getUserInstances = function (matchId, userId, cbk) {
                 .findById(matchId, {
                     settings: 1,
                     state: 1,
+                    time: 1, 
                     home_team: 1,
                     away_team: 1,
                     home_score: 1,
@@ -628,6 +629,7 @@ gamecards.getUserInstances = function (matchId, userId, cbk) {
 
         const settings = match.settings;
         const matchState = match.state;
+        const matchMinute = match.time;
         const definitions = asyncResult[1];
         const userCards = asyncResult[2];
 
@@ -693,7 +695,8 @@ gamecards.getUserInstances = function (matchId, userId, cbk) {
             });
         }
         // If the match has passed its second half, disable all Overall cards
-        if (matchState > 3) {
+        // ToDo: instead of setting a hard-wired limit of 70 minutes for Overall disappearance, decide based on the appearanceConditions on the card definitions
+        if (matchState > 3 || matchMinute > 70) {
             _.forEach(definitions, function (definition) {
                 if (definition.cardType == 'Overall' && _.indexOf(definitionIdsToDrop, definition.id) == -1)
                     definitionIdsToDrop.push(definition.id);
