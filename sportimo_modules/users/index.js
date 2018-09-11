@@ -927,7 +927,7 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
 
             return callback(null, userObject);
         });
-    }
+    };
 
     var validateToken = function (token, callback) {
         jsonwebtoken.verify(token, app.get('superSecret'), { ignoreExpiration: true }, function (err, decodedUser) {
@@ -944,7 +944,7 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
                         model: 'teams'
                     })
                     .exec(function (err, user) {
-                        if (err) 
+                        if (err)
                             return callback(err);
 
                         //if (!user) {
@@ -955,7 +955,7 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
                     });
             }
         });
-    }
+    };
 
     var createUser = function (social_id, social_platform, social_username, callback) {
         // create a new account
@@ -973,10 +973,6 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
         // Generate a unique username 
         var hexCompressed = crypto.createHash('md5').update(newUser.id).digest('base64').replace(/[+\/=]/g, '');
         newUser.username = moniker.choose();
-        var usernameParts = newUser.username.split("-");
-        if (usernameParts.length > 1)
-            newUser.username = usernameParts[0].charAt(0).toUpperCase() + usernameParts[0].substr(1) + usernameParts[1].charAt(0).toUpperCase() + usernameParts[1].substr(1);
-
         if (social_username)
             newUser.username = social_username; // test for uniqueness
 
@@ -986,16 +982,16 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
         // Generate a unique email
         newUser.email = newUser.username + '@sportimo.com';
 
-        var usernameIsUnique = false;
+        var emailIsUnique = false;
         var usernameCounter = 0;
 
-        // Keep on trying until generating a unique username
+        // Keep on trying until generating a unique email
         async.until(
-            () => { return usernameIsUnique; },
+            () => { return emailIsUnique; },
             (cbk) => {
-                User.findOne({ username: newUser.username, deletedAt: null }, (err, user) => {
+                User.findOne({ email: newUser.email, deletedAt: null }, (err, user) => {
                     if (!user)
-                        usernameIsUnique = true;
+                        emailIsUnique = true;
                     else {
                         newUser.username = moniker.choose();
                         newUser.email = newUser.username + '@sportimo.com';
@@ -1012,43 +1008,291 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
                 return newUser.save(callback);
             }
         );
-    }
+    };
 
     var authenticateUser = function (username, password, callback) {
         User.findOne({ username: username, deletedAt: null })
-        .populate({
-            path: 'favoriteteams',
-            select: 'name',
-            model: 'teams'
-        })
-        .exec((err, user) => {
-            if (err) {
-                return callback(err);
-            }
-
-            if (!user) {
-                //return callback(new Error(`Authentication failed. User not found.`));
-                return callback(null, null);
-            }
-
-            user.comparePassword(req.body.password, function (err, isMatch) {
+            .populate({
+                path: 'favoriteteams',
+                select: 'name',
+                model: 'teams'
+            })
+            .exec((err, user) => {
                 if (err) {
-                    if (err)
-                        logger.log('error', err.stack);
-
-                    return callback(new Error('Authentication failed. Wrong password.'));
+                    return callback(err);
                 }
 
-                if (!isMatch) {
+                if (!user) {
+                    //return callback(new Error(`Authentication failed. User not found.`));
                     return callback(null, null);
                 }
 
-                return callback(null, user);
+                user.comparePassword(req.body.password, function (err, isMatch) {
+                    if (err) {
+                        if (err)
+                            logger.log('error', err.stack);
+
+                        return callback(new Error('Authentication failed. Wrong password.'));
+                    }
+
+                    if (!isMatch) {
+                        return callback(null, null);
+                    }
+
+                    return callback(null, user);
+                });
             });
+    };
+
+    if (!token) {
+        if (req.body.social_id && req.body.social_platform) {
+            User.findOne({
+                ['social_ids.' + req.body.social_platform]: req.body.social_id
+            })
+                .populate({
+                    path: 'favoriteteams',
+                    select: 'name',
+                    model: 'teams'
+                })
+                .exec(function (err, socialUser) {
+                    if (err) {
+                        logger.log('error', err.stack, req.body);
+                        return res.json({ success: false, message: 'Authentication failed.' });
+                    }
+
+                    if (!socialUser) {
+                        if (!hasLoginCredentials) {
+                            createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                                if (err) {
+                                    logger.log('error', err.stack, req.body);
+                                    return res.json({ success: false, message: 'Authentication failed.' });
+                                }
+
+                                translateUser(newUser, (err, userObj) => {
+                                    return res.json(userObj);
+                                });
+                            });
+                        }
+                        else {
+                            authenticateUser(req.body.username, req.body.password, (err, loginUser) => {
+                                if (err) {
+                                    logger.log('error', err.stack, req.body);
+                                    return res.json({ success: false, message: 'Authentication failed. Wrong username or password.' });
+                                }
+
+                                if (!loginUser) {
+                                    createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                                        if (err) {
+                                            logger.log('error', err.stack, req.body);
+                                            return res.json({ success: false, message: 'Authentication failed.' });
+                                        }
+
+                                        translateUser(newUser, (err, userObj) => {
+                                            return res.json(userObj);
+                                        });
+                                    });
+                                } else {
+
+                                    async.waterfall([
+                                        (cbk) => {
+                                            if (req.body.social_id && req.body.social_platform && !loginUser.social_ids[req.body.social_platform]) {
+                                                loginUser.social_ids[req.body.social_platform] = req.body.social_id;
+                                                loginUser.markModified('social_ids');
+                                                return loginUser.save((err) => { return cbk(err, loginUser); });
+                                            } else {
+                                                return async.setImmediate(() => { cbk(null, loginUser); });
+                                            }
+                                        },
+                                        (loginUser, cbk) => {
+                                            return translateUser(loginUser, cbk);
+                                        }
+                                    ], (err, userObj) => {
+                                        if (err) {
+                                            logger.log('error', err.stack, req.body);
+                                            return res.json({ success: false, message: 'Authentication failed.' });
+                                        }
+
+                                        return res.json(userObj);
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    else {
+                        translateUser(socialUser, (err, userObj) => {
+                            return res.json(userObj);
+                        });
+                    }
+                });
+        } else {
+            if (!hasLoginCredentials) {
+                createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                    if (err) {
+                        logger.log('error', err.stack, req.body);
+                        return res.json({ success: false, message: 'Authentication failed.' });
+                    }
+
+                    translateUser(newUser, (err, userObj) => {
+                        return res.json(userObj);
+                    });
+                });
+            } else {
+                authenticateUser(req.body.username, req.body.password, (err, loginUser) => {
+                    if (err) {
+                        logger.log('error', err.stack, req.body);
+                        return res.json({ success: false, message: 'Authentication failed. Wrong username or password.' });
+                    }
+
+                    if (!loginUser) {
+                        createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                            if (err) {
+                                logger.log('error', err.stack, req.body);
+                                return res.json({ success: false, message: 'Authentication failed.' });
+                            }
+
+                            translateUser(newUser, (err, userObj) => {
+                                return res.json(userObj);
+                            });
+                        });
+                    } else {
+                        translateUser(loginUser, (err, userObj) => {
+                            return res.json(userObj);
+                        });
+                    }
+
+                });
+            }
+        }
+    } else {
+        validateToken(token, (err, tokenUser) => {
+            if (err) {
+                logger.log('error', err.stack, req.body);
+                return res.json({ success: false, message: 'Authentication failed.' });
+            }
+
+            if (!tokenUser) {
+
+                if (req.body.social_id && req.body.social_platform) {
+                    User.findOne({
+                        ['social_ids.' + req.body.social_platform]: req.body.social_id
+                    })
+                        .populate({
+                            path: 'favoriteteams',
+                            select: 'name',
+                            model: 'teams'
+                        })
+                        .exec(function (err, socialUser) {
+                            if (err) {
+                                logger.log('error', err.stack, req.body);
+                                return res.json({ success: false, message: 'Authentication failed.' });
+                            }
+
+                            if (!socialUser) {
+                                if (!hasLoginCredentials) {
+                                    createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                                        if (err) {
+                                            logger.log('error', err.stack, req.body);
+                                            return res.json({ success: false, message: 'Authentication failed.' });
+                                        }
+
+                                        translateUser(newUser, (err, userObj) => {
+                                            return res.json(userObj);
+                                        });
+                                    });
+                                } else {
+                                    authenticateUser(req.body.username, req.body.password, (err, loginUser) => {
+                                        if (err) {
+                                            logger.log('error', err.stack, req.body);
+                                            return res.json({ success: false, message: 'Authentication failed. Wrong username or password.' });
+                                        }
+
+                                        if (!loginUser) {
+                                            createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                                                if (err) {
+                                                    logger.log('error', err.stack, req.body);
+                                                    return res.json({ success: false, message: 'Authentication failed.' });
+                                                }
+
+                                                translateUser(newUser, (err, userObj) => {
+                                                    return res.json(userObj);
+                                                });
+                                            });
+                                        } else {
+
+                                            async.waterfall([
+                                                (cbk) => {
+                                                    if (req.body.social_id && req.body.social_platform && !loginUser.social_ids[req.body.social_platform]) {
+                                                        loginUser.social_ids[req.body.social_platform] = req.body.social_id;
+                                                        loginUser.markModified('social_ids');
+                                                        return loginUser.save((err) => { return cbk(err, loginUser); });
+                                                    } else {
+                                                        return async.setImmediate(() => { cbk(null, loginUser); });
+                                                    }
+                                                },
+                                                (loginUser, cbk) => {
+                                                    return translateUser(loginUser, cbk);
+                                                }
+                                            ], (err, userObj) => {
+                                                if (err) {
+                                                    logger.log('error', err.stack, req.body);
+                                                    return res.json({ success: false, message: 'Authentication failed.' });
+                                                }
+
+                                                return res.json(userObj);
+                                            });
+                                        }
+                                    });
+                                }
+                            } else {
+                                createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                                    if (err) {
+                                        logger.log('error', err.stack, req.body);
+                                        return res.json({ success: false, message: 'Authentication failed.' });
+                                    }
+
+                                    translateUser(newUser, (err, userObj) => {
+                                        return res.json(userObj);
+                                    });
+                                });
+                            }
+                        });
+                } else {
+                    createUser(req.body.social_id, req.body.social_platform, req.body.social_username, (err, newUser) => {
+                        if (err) {
+                            logger.log('error', err.stack, req.body);
+                            return res.json({ success: false, message: 'Authentication failed.' });
+                        }
+
+                        translateUser(newUser, (err, userObj) => {
+                            return res.json(userObj);
+                        });
+                    });
+                }
+
+            } else {
+                if (req.body.social_id && req.body.social_platform && !tokenUser.social_ids[req.body.social_platform]) {
+                    tokenUser.social_ids[req.body.social_platform] = req.body.social_id;
+                    tokenUser.markModified('social_ids');
+                    tokenUser.save((err) => {
+                        if (err) {
+                            logger.log('error', err.stack, req.body);
+                            return res.json({ success: false, message: 'Authentication failed.' });
+                        }
+
+                        translateUser(tokenUser, (err, userObj) => {
+                            return res.json(userObj);
+                        });
+                    });
+                } else {
+                    translateUser(tokenUser, (err, userObj) => {
+                        return res.json(userObj);
+                    });
+                }
+            }
         });
     }
 
-
+    /*
     if (req.body.social_id && req.body.social_platform) {
         User.findOne({
             ['social_ids.' + req.body.social_platform]: req.body.social_id
@@ -1234,6 +1478,7 @@ apiRoutes.post('/v1/users/single_signon', (req, res) => {
             });
         }
     }
+    */
 });
 
 
