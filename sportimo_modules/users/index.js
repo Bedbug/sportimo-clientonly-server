@@ -47,7 +47,7 @@ try {
 }
 
 app.set('superSecret', config.secret); // secret variable
-
+app.set('gameServerUrl', config.gameServerUrl); // game server url to be used as proxy in sending a taunt endpoint
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -1887,6 +1887,14 @@ apiRoutes.get('/v1/taunts', function (req, res) {
 
 // This is a route used by clients to taunt other users 
 apiRoutes.post('/v1/users/:uid/taunt', function (req, res) {
+
+    let gameServerUrl = `${app.get('gameServerUrl')}/v1/users/${req.params.uid}/taunt`;
+
+    // 307 temporary redirect for POST requests, see https://stackoverflow.com/questions/38810114/node-js-with-express-how-to-redirect-a-post-request
+    return res.redirect(307, gameServerUrl);
+
+
+    /*
     var tauntData = req.body;
 
     if (!tauntData.sender._id || !tauntData.recipient._id)
@@ -1921,6 +1929,7 @@ apiRoutes.post('/v1/users/:uid/taunt', function (req, res) {
             res.status(500).send(err);
         }
     });
+    */
 });
 
 apiRoutes.get('/v1/users/:uid/block/:buid/:state', function (req, res) {
