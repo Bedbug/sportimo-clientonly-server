@@ -112,11 +112,11 @@ Handler.Reward.rank_achievements = function (matchid, outerCallback) {
             return async.eachLimit(pools, 500, function (pool, poolCbk) {
 
                 var parsedPool = parseConditons(pool);
-                var q = mongoose.models.scores.aggregate({
-                    $match: parsedPool
-                });
+                var q = mongoose.models.scores.aggregate([
+                    { $match: parsedPool },
+                    { $sort: { score: -1 } }
+                    ]);
 
-                q.sort({ score: -1 });
                 var usersCount = 0;
 
                 q.exec(function (err, leaderboard) {

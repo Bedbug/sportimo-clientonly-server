@@ -138,24 +138,24 @@ api.getSocialLeaderboardWithRank = function (id, body, mid, cb) {
 
         // console.log(leader_conditions);
 
-        var q = Score.aggregate({
-            $match: leader_conditions
-        });
-
-
-
-        q.group({
-            _id: "$user_id",
-            score: { $sum: "$score" },
-            name: { $first: '$user_name' },
-            level: { $max: '$level' },
-            pic: { $last: '$pic' },
-            country: { $first: '$country' }
-        });
-
-
-
-        q.sort({ score: -1 });
+        var q = Score.aggregate([
+            {
+                $match: leader_conditions
+            },
+            {
+                $group: {
+                    _id: "$user_id",
+                    score: { $sum: "$score" },
+                    name: { $first: '$user_name' },
+                    level: { $max: '$level' },
+                    pic: { $last: '$pic' },
+                    country: { $first: '$country' }
+                }
+            },
+            {
+                $sort: { score: -1 }
+            }
+        ]);
 
         var rank;
         var user;
@@ -179,14 +179,14 @@ api.getSocialLeaderboardWithRank = function (id, body, mid, cb) {
             var ldata = {
                 user: user,
                 leaderboad: leaderboard
-            }
+            };
             if (body.sponsor)
                 ldata["sponsor"] = body.sponsor;
 
 
             return cbf(cb, err, ldata);
-        })
-    })
+        });
+    });
 
 
 };

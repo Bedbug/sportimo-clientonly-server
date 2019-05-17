@@ -2079,7 +2079,8 @@ apiRoutes.get('/v1/users/:uid/stats', function (req, res) {
                             var avg = Math.round(sum / count);
                             stats.pointsPerGame = avg || 0;
 
-                            UserActivities.aggregate({ $match: {} },
+                            UserActivities.aggregate([
+                                { $match: {} },
                                 {
                                     $group: {
                                         _id: null,
@@ -2092,22 +2093,23 @@ apiRoutes.get('/v1/users/:uid/stats', function (req, res) {
                                         presetinstantCardsPlayed: { $sum: "$presetinstantCardsPlayed" },
                                         presetinstantCardsWon: { $sum: "$presetinstantCardsWon" }
                                     }
-                                }, function (err, result) {
-                                    if (err)
-                                        return res.status(500).send(err);
+                                }
+                            ], function (err, result) {
+                                if (err)
+                                    return res.status(500).send(err);
 
-                                    stats.all = result[0];
-                                    delete stats.all._id;
+                                stats.all = result[0];
+                                delete stats.all._id;
 
 
-                                    stats.all.successPercent = (stats.all.cardsWon / stats.all.cardsPlayed) * 100 || 0;
-                                    stats.all.overallSuccessPercent = (stats.all.overallCardsWon / stats.all.overallCardsPlayed) * 100 || 0;
-                                    stats.all.instantSuccessPercent = (((stats.all.instantCardsWon + stats.all.presetinstantCardsWon) / (stats.all.instantCardsPlayed + stats.all.presetinstantCardsPlayed)) * 100) || 0;
-                                    res.status(200).send(stats);
-                                });
+                                stats.all.successPercent = (stats.all.cardsWon / stats.all.cardsPlayed) * 100 || 0;
+                                stats.all.overallSuccessPercent = (stats.all.overallCardsWon / stats.all.overallCardsPlayed) * 100 || 0;
+                                stats.all.instantSuccessPercent = (((stats.all.instantCardsWon + stats.all.presetinstantCardsWon) / (stats.all.instantCardsPlayed + stats.all.presetinstantCardsPlayed)) * 100) || 0;
+                                res.status(200).send(stats);
+                            });
                         });
-                })
-        })
+                });
+        });
 
 
 

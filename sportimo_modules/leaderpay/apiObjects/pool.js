@@ -12,19 +12,21 @@ var mongoose = require('mongoose'),
 // ALL
 api.getPool = function (conditions, skip, limit, cb) {
 
-    var q = Score.aggregate({
-        $match: conditions
-    });
+    var q = Score.aggregate([
+        {
+            $match: conditions
+        },
+        {
+            $group: {
+                _id: "$user_id",
+                score: { $sum: "$score" },
+                name: { $first: '$user_name' },
+                pic: { $first: '$user_pic' }
+            }
+        }
+    ]);
     
-     
-    q.group({
-        _id: "$user_id",
-        score: {$sum: "$score"},
-        name : { $first: '$user_name' },
-        pic: { $first: '$user_pic'}
-    });
-    
-    
+         
     if (skip != undefined)
         q.skip(skip * 1);
 
