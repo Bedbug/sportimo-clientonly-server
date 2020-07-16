@@ -20,7 +20,7 @@
     "googleapis": "^20.1.0",
     "jsonwebtoken": "^8.2.0",
     "jwt-decode": "^1.5.1",
-    "lodash": "4.17.10",
+    "lodash": "4.17.19",
     "method-override": "^2.3.5",
     "mitm": "^1.2.0",
     "moment": "^2.20.1",
