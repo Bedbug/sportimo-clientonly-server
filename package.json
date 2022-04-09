@@ -23,7 +23,7 @@
     "lodash": "4.17.10",
     "method-override": "^2.3.5",
     "mitm": "^1.2.0",
-    "moment": "^2.20.1",
+    "moment": "^2.29.2",
     "moment-duration-format": "^1.3.0",
     "mongoose": "5.4.23",
     "moniker": "^0.1.2",
