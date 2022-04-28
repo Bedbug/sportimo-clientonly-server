@@ -6,7 +6,7 @@
   "version": "0.0.5",
   "dependencies": {
     "airbrake": "^2.1.0",
-    "async": "^1.5.2",
+    "async": "^2.6.4",
     "bcryptjs": "^2.3.0",
     "body-parser": "",
     "cluster": "^0.7.7",
